@@ -831,7 +831,8 @@
                     adminLoginError.style.display = 'block';
                 }
             } catch (error) {
-                adminLoginError.textContent = 'Invalid admin credentials.';
+                // FIXED: Displays the actual Firebase error message instead of generic text
+                adminLoginError.textContent = error.message;
                 adminLoginError.style.display = 'block';
             }
         });
