@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Modulus Equations - Portal, Quiz & Admin</title>
+    
+    <!-- Firebase App, Auth & Firestore SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --error-color: #c0392b;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 20px;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .view {
+            display: none;
+        }
+        .view.active {
+            display: block;
+        }
+
+        .auth-box {
+            max-width: 400px;
+            margin: 30px auto;
+            padding: 30px;
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+        .auth-box h2 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+        .auth-box input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0 20px 0;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        .auth-box label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--primary-color);
+        }
+        .toggle-links {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+        .toggle-link {
+            color: var(--accent-color);
+            cursor: pointer;
+            display: block;
+            margin-top: 8px;
+        }
+        .toggle-link:hover {
+            text-decoration: underline;
+        }
+        .error-msg {
+            color: var(--error-color);
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        /* Quiz Cards & Circular Choices */
+        .question-card {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+
+        .question-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .options {
+            list-style-type: none;
+            padding: 0;
+            margin: 15px 0;
+        }
+
+        .options li {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .options li::before {
+            content: '';
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid #cbd5e0;
+            border-radius: 50%;
+            margin-right: 12px;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            background: #fff;
+        }
+
+        .options li:hover {
+            background: #edf2f7;
+            border-color: var(--accent-color);
+        }
+
+        .options li.selected {
+            background: #ebf8ff;
+            border-color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .options li.selected::before {
+            border-color: var(--accent-color);
+            background-color: var(--accent-color);
+            box-shadow: inset 0 0 0 3px #fff;
+        }
+
+        .options li.correct {
+            background: #d4edda !important;
+            border-color: var(--success-color) !important;
+            color: #155724;
+            font-weight: 600;
+        }
+        .options li.correct::before {
+            border-color: var(--success-color);
+            background-color: var(--success-color);
+            box-shadow: inset 0 0 0 3px #fff;
+        }
+
+        .options li.incorrect {
+            background: #f8d7da !important;
+            border-color: var(--error-color) !important;
+            color: #721c24;
+        }
+
+        .explanation {
+            display: none;
+            margin-top: 15px;
+            background: #ebf8ff;
+            border: 1px solid #bee3f8;
+            border-radius: 6px;
+            padding: 15px;
+        }
+
+        .explanation.visible {
+            display: block;
+        }
+
+        .explanation h4 {
+            margin: 0 0 8px 0;
+            color: #2b6cb0;
+        }
+
+        .explanation p {
+            margin: 0;
+            color: #2d3748;
+        }
+
+        .quiz-controls {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid var(--border-color);
+        }
+
+        .btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-right: 10px;
+        }
+
+        .btn:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-reset {
+            background-color: #7f8c8d;
+        }
+        .btn-reset:hover {
+            background-color: #707b7c;
+        }
+
+        .btn-danger {
+            background-color: var(--error-color);
+        }
+        .btn-danger:hover {
+            background-color: #a93226;
+        }
+
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 0.85rem;
+        }
+
+        #score-display {
+            display: none;
+            margin-top: 25px;
+            padding: 20px;
+            background: #e8f4fd;
+            border: 2px solid var(--accent-color);
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card h4 {
+            margin: 0 0 5px 0;
+            color: #718096;
+            font-size: 0.85rem;
+        }
+
+        .stat-card .stat-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .admin-section {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            text-align: left;
+            font-size: 0.95rem;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: var(--bg-color);
+        }
+
+        .user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #edf2f7;
+            padding: 10px 20px;
+            border-radius: 6px;
+            margin-bottom: 25px;
+        }
+
+        .quiz-meta-banner {
+            background: #e2e8f0;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        #timer-box {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 0.9rem;
+            color: #718096;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- VIEW 1: STUDENT LOGIN PORTAL -->
+        <div id="login-view" class="view active">
+            <div class="auth-box">
+                <h2>Student Login</h2>
+                <div id="login-error" class="error-msg"></div>
+                <form id="login-form">
+                    <label for="login-username">Username</label>
+                    <input type="text" id="login-username" required autocomplete="username">
+                    
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" required autocomplete="current-password">
+                    
+                    <button type="submit" class="btn" style="width:100%;">Log In</button>
+                </form>
+                <div class="toggle-links">
+                    <span class="toggle-link" id="to-register">Don't have an account? Register here</span>
+                    <span class="toggle-link" id="to-admin-login" style="font-weight: 600; color: #2c3e50;">Instructor / Admin Portal</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: STUDENT REGISTRATION PORTAL -->
+        <div id="register-view" class="view">
+            <div class="auth-box">
+                <h2>Student Registration</h2>
+                <div id="register-error" class="error-msg"></div>
+                <form id="register-form">
+                    <label for="reg-username">Choose Username</label>
+                    <input type="text" id="reg-username" required autocomplete="username">
+                    
+                    <label for="reg-password">Choose Password</label>
+                    <input type="password" id="reg-password" required autocomplete="new-password">
+                    
+                    <button type="submit" class="btn" style="width:100%;">Register & Log In</button>
+                </form>
+                <div class="toggle-links">
+                    <span class="toggle-link" id="to-login">Already have an account? Log in</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 3: ADMIN LOGIN PORTAL -->
+        <div id="admin-login-view" class="view">
+            <div class="auth-box">
+                <h2>Instructor Portal</h2>
+                <div id="admin-login-error" class="error-msg"></div>
+                <form id="admin-login-form">
+                    <label for="admin-username">Admin Username</label>
+                    <input type="text" id="admin-username" required autocomplete="username">
+                    
+                    <label for="admin-password">Admin Password</label>
+                    <input type="password" id="admin-password" required autocomplete="current-password">
+                    
+                    <button type="submit" class="btn" style="background-color: var(--primary-color); width:100%;">Access Dashboard</button>
+                </form>
+                <div class="toggle-links">
+                    <span class="toggle-link" id="back-to-student">Back to Student Login</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 4: QUIZ INTERFACE -->
+        <div id="quiz-view" class="view">
+            <header>
+                <h1>Advanced Modulus Equations</h1>
+                <p>Interactive Practice Quiz</p>
+            </header>
+
+            <div class="user-header">
+                <span>Logged in as: <strong id="current-username"></strong></span>
+                <button type="button" class="btn btn-reset btn-small" id="logout-btn">Log Out</button>
+            </div>
+
+            <div class="quiz-meta-banner">
+                <div>Opens: <span id="student-start-date">Not set</span></div>
+                <div>Closes: <span id="student-end-date">Not set</span></div>
+            </div>
+
+            <div id="timer-box">Time Remaining: <span id="time-left">--:--</span></div>
+            <div id="quiz-access-error" class="error-msg" style="display:none; font-size:1.1rem; padding:20px; background:#f8d7da; border-radius:6px; margin-bottom:20px;"></div>
+
+            <form id="quiz-form">
+                <!-- Question 1 -->
+                <div class="question-card" data-question="1" data-answer="C">
+                    <div class="question-title">Question 1: Nested Absolute Values</div>
+                    <p>Find all real values of <em>x</em> that satisfy the nested modulus equation: <strong>||x - 2| - 3| = 5</strong></p>
+                    <ul class="options">
+                        <li data-value="A">A) x = {-6, 2, 10}</li>
+                        <li data-value="B">B) x = {-4, 10}</li>
+                        <li data-value="C">C) x = {-6, 10}</li>
+                        <li data-value="D">D) x = {-2, 6}</li>
+                    </ul>
+                    <div class="explanation">
+                        <h4>Solution & Rationale</h4>
+                        <p><strong>Correct Answer: C) x = {-6, 10}</strong><br>
+                        The outer modulus gives two cases: |x - 2| - 3 = 5 &rarr; x = 10 or x = -6.</p>
+                    </div>
+                </div>
+
+                <!-- Question 2 -->
+                <div class="question-card" data-question="2" data-answer="C">
+                    <div class="question-title">Question 2: Parameter Constraints & Solutions</div>
+                    <p>Determine the total number of real solutions to the equation: <strong>|x² - 4x + 3| = x - 1</strong></p>
+                    <ul class="options">
+                        <li data-value="A">A) 1 solution</li>
+                        <li data-value="B">B) 2 solutions</li>
+                        <li data-value="C">C) 3 solutions</li>
+                        <li data-value="D">D) 4 solutions</li>
+                    </ul>
+                    <div class="explanation">
+                        <h4>Solution & Rationale</h4>
+                        <p><strong>Correct Answer: C) 3 solutions</strong><br>
+                        Factoring yields |(x - 1)(x - 3)| = x - 1, producing valid solutions at x = 1, 2, and 4.</p>
+                    </div>
+                </div>
+
+                <!-- Question 3 -->
+                <div class="question-card" data-question="3" data-answer="A">
+                    <div class="question-title">Question 3: Sum of Solutions</div>
+                    <p>Find the sum of all real solutions to the equation: <strong>|2x - 3| + |x + 1| = 6</strong></p>
+                    <ul class="options">
+                        <li data-value="A">A) 4/3</li>
+                        <li data-value="B">B) 2</li>
+                        <li data-value="C">C) 8/3</li>
+                        <li data-value="D">D) 3</li>
+                    </ul>
+                    <div class="explanation">
+                        <h4>Solution & Rationale</h4>
+                        <p><strong>Correct Answer: A) 4/3</strong><br>
+                        Testing critical intervals gives valid solutions at x = 8/3 and x = -4/3. Their sum is 4/3.</p>
+                    </div>
+                </div>
+
+                <!-- Question 4 -->
+                <div class="question-card" data-question="4" data-answer="B">
+                    <div class="question-title">Question 4: Geometric Interpretation</div>
+                    <p>For what specific real value of <em>k</em> does the equation <strong>|x - 1| + |x - 5| = k</strong> possess infinitely many solutions?</p>
+                    <ul class="options">
+                        <li data-value="A">A) k = 2</li>
+                        <li data-value="B">B) k = 4</li>
+                        <li data-value="C">C) k = 6</li>
+                        <li data-value="D">D) No such value exists</li>
+                    </ul>
+                    <div class="explanation">
+                        <h4>Solution & Rationale</h4>
+                        <p><strong>Correct Answer: B) k = 4</strong><br>
+                        The distance between 1 and 5 is 4, meaning every point in the closed interval [1, 5] satisfies the equation.</p>
+                    </div>
+                </div>
+
+                <!-- Question 5 -->
+                <div class="question-card" data-question="5" data-answer="A">
+                    <div class="question-title">Question 5: Product of Solutions</div>
+                    <p>Find the product of all real solutions to the equation: <strong>|x + 2| + |x - 2| = 6</strong></p>
+                    <ul class="options">
+                        <li data-value="A">A) -9</li>
+                        <li data-value="B">B) -6</li>
+                        <li data-value="C">C) 9</li>
+                        <li data-value="D">D) 36</li>
+                    </ul>
+                    <div class="explanation">
+                        <h4>Solution & Rationale</h4>
+                        <p><strong>Correct Answer: A) -9</strong><br>
+                        Solving the interval cases yields x = 3 and x = -3. Their product is -9.</p>
+                    </div>
+                </div>
+
+                <div class="quiz-controls" id="quiz-buttons-container">
+                    <button type="button" class="btn" id="submit-btn">Submit Quiz</button>
+                    <button type="button" class="btn btn-reset" id="reset-btn">Reset Quiz</button>
+                </div>
+            </form>
+
+            <div id="score-display"></div>
+        </div>
+
+        <!-- VIEW 5: ADMIN / INSTRUCTOR DASHBOARD -->
+        <div id="admin-view" class="view">
+            <header>
+                <h1>Instructor Dashboard</h1>
+                <p>Student Submissions, Performance Analytics & Settings</p>
+            </header>
+
+            <div class="user-header">
+                <span>Logged in as: <strong>Admin / Instructor</strong></span>
+                <button type="button" class="btn btn-reset btn-small" id="admin-logout-btn">Log Out</button>
+            </div>
+
+            <!-- Quiz Configuration Section -->
+            <div class="admin-section">
+                <h3>Quiz Access & Timer Settings</h3>
+                <form id="config-form" style="display: grid; gap: 15px; margin-top: 15px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div>
+                            <label for="config-start">Access Start Date & Time</label>
+                            <input type="datetime-local" id="config-start" style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:4px; display:block; margin-top:5px; box-sizing:border-box;">
+                        </div>
+                        <div>
+                            <label for="config-end">Access End Date & Time</label>
+                            <input type="datetime-local" id="config-end" style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:4px; display:block; margin-top:5px; box-sizing:border-box;">
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                            <input type="checkbox" id="config-timer-toggle"> Enable Timer (Minutes)
+                        </label>
+                        <input type="number" id="config-timer-mins" min="1" placeholder="e.g., 15" style="width: 100px; padding: 6px; border:1px solid var(--border-color); border-radius:4px;">
+                    </div>
+                    <button type="submit" class="btn" style="width: auto;">Save Configuration</button>
+                </form>
+            </div>
+
+            <!-- Summary Stats & Result Analysis -->
+            <div class="stats-container">
+                <div class="stat-card">
+                    <h4>Total Attempts</h4>
+                    <p class="stat-value" id="stat-total-attempts">0</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Average Score</h4>
+                    <p class="stat-value" id="stat-avg-score">0%</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Highest Score</h4>
+                    <p class="stat-value" id="stat-high-score">0%</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Pass Rate (&ge;60%)</h4>
+                    <p class="stat-value" id="stat-pass-rate">0%</p>
+                </div>
+            </div>
+
+            <!-- Student Management Section -->
+            <div class="admin-section">
+                <h3>Registered Students Management</h3>
+                <table id="students-table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="students-tbody">
+                        <!-- Dynamic student rows -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Attempt Records Section -->
+            <div class="admin-section">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3>Student Attempt Records</h3>
+                    <button type="button" class="btn btn-danger btn-small" id="clear-data-btn">Clear All Records</button>
+                </div>
+                <table id="results-table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Score</th>
+                            <th>Percentage</th>
+                            <th>Date & Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-tbody">
+                        <!-- Dynamic rows injected via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <footer>
+            <p>Advanced Mathematical Practice Module</p>
+        </footer>
+    </div>
+
+    <script>
+        // REPLACE WITH YOUR ACTUAL FIREBASE WEB APP CONFIG FROM FIREBASE CONSOLE
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // DOM Elements
+        const loginView = document.getElementById('login-view');
+        const registerView = document.getElementById('register-view');
+        const adminLoginView = document.getElementById('admin-login-view');
+        const quizView = document.getElementById('quiz-view');
+        const adminView = document.getElementById('admin-view');
+
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const adminLoginForm = document.getElementById('admin-login-form');
+        const configForm = document.getElementById('config-form');
+
+        const loginError = document.getElementById('login-error');
+        const registerError = document.getElementById('register-error');
+        const adminLoginError = document.getElementById('admin-login-error');
+
+        const toRegisterLink = document.getElementById('to-register');
+        const toLoginLink = document.getElementById('to-login');
+        const toAdminLoginLink = document.getElementById('to-admin-login');
+        const backToStudentLink = document.getElementById('back-to-student');
+
+        const currentUsernameSpan = document.getElementById('current-username');
+        const logoutBtn = document.getElementById('logout-btn');
+        const adminLogoutBtn = document.getElementById('admin-logout-btn');
+        const clearDataBtn = document.getElementById('clear-data-btn');
+
+        const questionCards = document.querySelectorAll('.question-card');
+        const userSelections = {};
+        let timerInterval = null;
+
+        // Ensure default admin account exists in Firestore
+        async function ensureAdminExists() {
+            const adminRef = db.collection('users').doc('admin');
+            const doc = await adminRef.get();
+            if (!doc.exists) {
+                await adminRef.set({ role: 'admin' });
+            }
+        }
+        ensureAdminExists();
+
+        // View Navigation
+        toRegisterLink.addEventListener('click', () => { loginError.style.display = 'none'; showView(registerView); });
+        toLoginLink.addEventListener('click', () => { registerError.style.display = 'none'; showView(loginView); });
+        toAdminLoginLink.addEventListener('click', () => { loginError.style.display = 'none'; showView(adminLoginView); });
+        backToStudentLink.addEventListener('click', () => { adminLoginError.style.display = 'none'; showView(loginView); });
+
+        function showView(view) {
+            loginView.classList.remove('active');
+            registerView.classList.remove('active');
+            adminLoginView.classList.remove('active');
+            quizView.classList.remove('active');
+            adminView.classList.remove('active');
+            view.classList.add('active');
+        }
+
+        // Registration Handler (Using Firebase Auth)
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('reg-username').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const email = `${username.toLowerCase()}@quizportal.local`;
+
+            if (username.toLowerCase() === 'admin') {
+                registerError.textContent = 'Reserved username cannot be registered.';
+                registerError.style.display = 'block';
+                return;
+            }
+
+            try {
+                const userRef = db.collection('users').doc(username);
+                const doc = await userRef.get();
+                if (doc.exists) {
+                    registerError.textContent = 'Username already exists. Please choose another.';
+                    registerError.style.display = 'block';
+                    return;
+                }
+
+                // Create secure user credentials in Firebase Auth
+                await auth.createUserWithEmailAndPassword(email, password);
+                await userRef.set({ role: 'student', email });
+
+                localStorage.setItem('current_user', username);
+                localStorage.setItem('current_role', 'student');
+
+                document.getElementById('reg-username').value = '';
+                document.getElementById('reg-password').value = '';
+                registerError.style.display = 'none';
+
+                currentUsernameSpan.textContent = username;
+                showView(quizView);
+                initializeQuizSession();
+            } catch (err) {
+                registerError.textContent = err.message || 'Registration error. Check network connection.';
+                registerError.style.display = 'block';
+            }
+        });
+
+        // Student Login Handler (Using Firebase Auth)
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+            const email = `${username.toLowerCase()}@quizportal.local`;
+
+            if (username.toLowerCase() === 'admin') {
+                loginError.textContent = 'Please use the Instructor Portal to log in as admin.';
+                loginError.style.display = 'block';
+                return;
+            }
+
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+
+                localStorage.setItem('current_user', username);
+                localStorage.setItem('current_role', 'student');
+                document.getElementById('login-username').value = '';
+                document.getElementById('login-password').value = '';
+                loginError.style.display = 'none';
+
+                currentUsernameSpan.textContent = username;
+                showView(quizView);
+                initializeQuizSession();
+            } catch (err) {
+                loginError.textContent = 'Invalid username or password.';
+                loginError.style.display = 'block';
+            }
+        });
+
+        // Admin Login Handler
+        adminLoginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('admin-username').value.trim();
+            const password = document.getElementById('admin-password').value;
+
+            try {
+                if (username !== 'admin') {
+                    throw new Error('Invalid admin username');
+                }
+
+                const adminEmail = 'admin@quizportal.local';
+                await auth.signInWithEmailAndPassword(adminEmail, password);
+
+                localStorage.setItem('current_user', 'admin');
+                localStorage.setItem('current_role', 'admin');
+                document.getElementById('admin-username').value = '';
+                document.getElementById('admin-password').value = '';
+                adminLoginError.style.display = 'none';
+
+                showView(adminView);
+                loadAdminDashboard();
+            } catch (err) {
+                adminLoginError.textContent = 'Invalid admin credentials.';
+                adminLoginError.style.display = 'block';
+            }
+        });
+
+        // Logout Handlers
+        async function handleLogout() {
+            if (timerInterval) clearInterval(timerInterval);
+            await auth.signOut();
+            localStorage.removeItem('current_user');
+            localStorage.removeItem('current_role');
+            showView(loginView);
+        }
+
+        logoutBtn.addEventListener('click', handleLogout);
+        adminLogoutBtn.addEventListener('click', handleLogout);
+
+        // Quiz Option Selection
+        questionCards.forEach(card => {
+            const options = card.querySelectorAll('.options li');
+            const qNum = card.getAttribute('data-question');
+
+            options.forEach(option => {
+                option.addEventListener('click', () => {
+                    options.forEach(opt => opt.classList.remove('selected'));
+                    option.classList.add('selected');
+                    userSelections[qNum] = option.getAttribute('data-value');
+                });
+            });
+        });
+
+        document.getElementById('submit-btn').addEventListener('click', () => {
+            submitQuiz();
+        });
+
+        function submitQuiz() {
+            if (timerInterval) clearInterval(timerInterval);
+            document.getElementById('timer-box').style.display = 'none';
+
+            let score = 0;
+            const totalQuestions = questionCards.length;
+
+            questionCards.forEach(card => {
+                const qNum = card.getAttribute('data-question');
+                const correctAnswer = card.getAttribute('data-answer');
+                const options = card.querySelectorAll('.options li');
+                const explanation = card.querySelector('.explanation');
+                
+                explanation.classList.add('visible');
+
+                options.forEach(option => {
+                    const val = option.getAttribute('data-value');
+                    if (val === correctAnswer) {
+                        option.classList.add('correct');
+                    } else if (val === userSelections[qNum]) {
+                        option.classList.add('incorrect');
+                    }
+                });
+
+                if (userSelections[qNum] === correctAnswer) {
+                    score++;
+                }
+            });
+
+            const percentage = Math.round((score / totalQuestions) * 100);
+            const scoreDisplay = document.getElementById('score-display');
+            scoreDisplay.style.display = 'block';
+            scoreDisplay.innerHTML = `Quiz Completed! You scored ${score} out of ${totalQuestions} (${percentage}%)`;
+            scoreDisplay.scrollIntoView({ behavior: 'smooth' });
+
+            document.getElementById('submit-btn').style.display = 'none';
+
+            const currentUser = localStorage.getItem('current_user') || 'Anonymous';
+            saveResult(currentUser, score, totalQuestions, percentage);
+        }
+
+        function resetQuizForm() {
+            if (timerInterval) clearInterval(timerInterval);
+            for (let key in userSelections) {
+                delete userSelections[key];
+            }
+
+            questionCards.forEach(card => {
+                const options = card.querySelectorAll('.options li');
+                const explanation = card.querySelector('.explanation');
+
+                options.forEach(option => {
+                    option.classList.remove('selected', 'correct', 'incorrect');
+                });
+
+                explanation.classList.remove('visible');
+            });
+
+            const scoreDisplay = document.getElementById('score-display');
+            scoreDisplay.style.display = 'none';
+            scoreDisplay.innerHTML = '';
+            document.getElementById('submit-btn').style.display = 'inline-block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            resetQuizForm();
+            initializeQuizSession();
+        });
+
+        // Save Result to Firestore
+        async function saveResult(username, score, total, percentage) {
+            try {
+                await db.collection('results').add({
+                    username,
+                    score: `${score}/${total}`,
+                    rawScore: score,
+                    percentage,
+                    date: new Date().toLocaleString(),
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } catch (err) {
+                console.error("Error saving result to Firestore: ", err);
+            }
+        }
+
+        // Initialize Quiz Session
+        async function initializeQuizSession() {
+            resetQuizForm();
+            const accessErrorElem = document.getElementById('quiz-access-error');
+            const quizFormElem = document.getElementById('quiz-form');
+            const timerBox = document.getElementById('timer-box');
+
+            let config = { start: '', end: '', timerEnabled: false, timerMins: 10 };
+            try {
+                const configDoc = await db.collection('settings').doc('quizConfig').get();
+                if (configDoc.exists) {
+                    config = configDoc.data();
+                }
+            } catch (err) {
+                console.error("Error fetching config:", err);
+            }
+
+            document.getElementById('student-start-date').textContent = config.start ? new Date(config.start).toLocaleString() : 'No restriction';
+            document.getElementById('student-end-date').textContent = config.end ? new Date(config.end).toLocaleString() : 'No restriction';
+
+            const now = new Date();
+            if (config.start && new Date(config.start) > now) {
+                accessErrorElem.textContent = `Quiz is not accessible yet. Opens on: ${new Date(config.start).toLocaleString()}`;
+                accessErrorElem.style.display = 'block';
+                quizFormElem.style.display = 'none';
+                return;
+            }
+            if (config.end && new Date(config.end) < now) {
+                accessErrorElem.textContent = `Quiz access has expired on: ${new Date(config.end).toLocaleString()}`;
+                accessErrorElem.style.display = 'block';
+                quizFormElem.style.display = 'none';
+                return;
+            }
+
+            accessErrorElem.style.display = 'none';
+            quizFormElem.style.display = 'block';
+
+            if (config.timerEnabled && config.timerMins > 0) {
+                let totalSeconds = config.timerMins * 60;
+                timerBox.style.display = 'block';
+                const timeLeftSpan = document.getElementById('time-left');
+
+                if (timerInterval) clearInterval(timerInterval);
+                timerInterval = setInterval(() => {
+                    let mins = Math.floor(totalSeconds / 60);
+                    let secs = totalSeconds % 60;
+                    timeLeftSpan.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                    
+                    if (totalSeconds <= 0) {
+                        clearInterval(timerInterval);
+                        alert("Time is up! Submitting your quiz automatically.");
+                        submitQuiz();
+                    }
+                    totalSeconds--;
+                }, 1000);
+            } else {
+                timerBox.style.display = 'none';
+            }
+        }
+
+        // Admin Config Save to Firestore
+        configForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const start = document.getElementById('config-start').value;
+            const end = document.getElementById('config-end').value;
+            const timerEnabled = document.getElementById('config-timer-toggle').checked;
+            const timerMins = parseInt(document.getElementById('config-timer-mins').value) || 10;
+
+            try {
+                await db.collection('settings').doc('quizConfig').set({ start, end, timerEnabled, timerMins });
+                alert("Quiz configuration saved to Firebase successfully!");
+            } catch (err) {
+                alert("Error saving configuration to Firebase.");
+            }
+        });
+
+        // Load Instructor Dashboard Analytics from Firestore
+        async function loadAdminDashboard() {
+            try {
+                const configDoc = await db.collection('settings').doc('quizConfig').get();
+                if (configDoc.exists) {
+                    const config = configDoc.data();
+                    document.getElementById('config-start').value = config.start || '';
+                    document.getElementById('config-end').value = config.end || '';
+                    document.getElementById('config-timer-toggle').checked = config.timerEnabled;
+                    document.getElementById('config-timer-mins').value = config.timerMins;
+                }
+            } catch (err) {
+                console.error("Error loading config:", err);
+            }
+
+            const tbody = document.getElementById('results-tbody');
+            const totalAttemptsElem = document.getElementById('stat-total-attempts');
+            const avgScoreElem = document.getElementById('stat-avg-score');
+            const highScoreElem = document.getElementById('stat-high-score');
+            const passRateElem = document.getElementById('stat-pass-rate');
+            
+            tbody.innerHTML = '';
+
+            try {
+                const snapshot = await db.collection('results').orderBy('timestamp', 'desc').get();
+                let results = [];
+                snapshot.forEach(doc => results.push(doc.data()));
+
+                totalAttemptsElem.textContent = results.length;
+
+                if (results.length === 0) {
+                    avgScoreElem.textContent = '0%';
+                    highScoreElem.textContent = '0%';
+                    passRateElem.textContent = '0%';
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #718096;">No student attempts recorded yet.</td></tr>`;
+                } else {
+                    let totalPercentageSum = 0;
+                    let maxScore = 0;
+                    let passCount = 0;
+
+                    results.forEach(record => {
+                        totalPercentageSum += record.percentage;
+                        if (record.percentage > maxScore) maxScore = record.percentage;
+                        if (record.percentage >= 60) passCount++;
+
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td><strong>${escapeHtml(record.username)}</strong></td>
+                            <td>${record.score}</td>
+                            <td>${record.percentage}%</td>
+                            <td>${record.date}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+
+                    avgScoreElem.textContent = Math.round(totalPercentageSum / results.length) + '%';
+                    highScoreElem.textContent = maxScore + '%';
+                    passRateElem.textContent = Math.round((passCount / results.length) * 100) + '%';
+                }
+            } catch (err) {
+                console.error("Error loading results:", err);
+            }
+
+            loadStudentsManagementTable();
+        }
+
+        async function loadStudentsManagementTable() {
+            const studentsTbody = document.getElementById('students-tbody');
+            studentsTbody.innerHTML = '';
+
+            try {
+                const snapshot = await db.collection('users').get();
+                let studentEntries = [];
+                snapshot.forEach(doc => {
+                    if (doc.id.toLowerCase() !== 'admin') {
+                        studentEntries.push(doc.id);
+                    }
+                });
+
+                if (studentEntries.length === 0) {
+                    studentsTbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #718096;">No registered students found.</td></tr>`;
+                    return;
+                }
+
+                studentEntries.forEach((username) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${escapeHtml(username)}</td>
+                        <td><span style="color: var(--success-color); font-weight:600;">Active (Secure Auth)</span></td>
+                        <td>
+                            <button type="button" class="btn btn-danger btn-small" onclick="deleteStudent('${escapeHtml(username)}')">Remove Account</button>
+                        </td>
+                    `;
+                    studentsTbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error("Error loading students:", err);
+            }
+        }
+
+        window.deleteStudent = async function(username) {
+            if (confirm(`Are you sure you want to remove student account "${username}"?`)) {
+                await db.collection('users').doc(username).delete();
+                loadStudentsManagementTable();
+            }
+        };
+
+        clearDataBtn.addEventListener('click', async () => {
+            if (confirm("Are you sure you want to clear all student attempt records from Firebase?")) {
+                const snapshot = await db.collection('results').get();
+                const batch = db.batch();
+                snapshot.forEach(doc => batch.delete(doc.ref));
+                await batch.commit();
+                loadAdminDashboard();
+            }
+        });
+
+        function escapeHtml(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedUser = localStorage.getItem('current_user');
+            const savedRole = localStorage.getItem('current_role');
+            if (savedUser && savedRole) {
+                if (savedRole === 'admin') {
+                    showView(adminView);
+                    loadAdminDashboard();
+                } else {
+                    currentUsernameSpan.textContent = savedUser;
+                    showView(quizView);
+                    initializeQuizSession();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
