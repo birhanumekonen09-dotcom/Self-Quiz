@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Advanced Modulus Equations - Portal, Quiz & Admin</title>
     
-    <!-- Firebase App, Auth & Firestore SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <!-- Firebase App (Compat SDKs for easy integration) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
     <style>
         :root {
@@ -392,8 +392,8 @@
                 <h2>Student Login</h2>
                 <div id="login-error" class="error-msg"></div>
                 <form id="login-form">
-                    <label for="login-username">Username</label>
-                    <input type="text" id="login-username" required autocomplete="username">
+                    <label for="login-email">Email Address</label>
+                    <input type="email" id="login-email" required autocomplete="email">
                     
                     <label for="login-password">Password</label>
                     <input type="password" id="login-password" required autocomplete="current-password">
@@ -413,8 +413,11 @@
                 <h2>Student Registration</h2>
                 <div id="register-error" class="error-msg"></div>
                 <form id="register-form">
-                    <label for="reg-username">Choose Username</label>
+                    <label for="reg-username">Full Name / Username</label>
                     <input type="text" id="reg-username" required autocomplete="username">
+
+                    <label for="reg-email">Email Address</label>
+                    <input type="email" id="reg-email" required autocomplete="email">
                     
                     <label for="reg-password">Choose Password</label>
                     <input type="password" id="reg-password" required autocomplete="new-password">
@@ -433,8 +436,8 @@
                 <h2>Instructor Portal</h2>
                 <div id="admin-login-error" class="error-msg"></div>
                 <form id="admin-login-form">
-                    <label for="admin-username">Admin Username</label>
-                    <input type="text" id="admin-username" required autocomplete="username">
+                    <label for="admin-email">Admin Email</label>
+                    <input type="email" id="admin-email" required autocomplete="email">
                     
                     <label for="admin-password">Admin Password</label>
                     <input type="password" id="admin-password" required autocomplete="current-password">
@@ -618,13 +621,14 @@
                 </div>
             </div>
 
-            <!-- Student Management Section -->
+            <!-- Student Management Section (Allow/Revoke Access & Delete) -->
             <div class="admin-section">
                 <h3>Registered Students Management & Access Control</h3>
                 <table id="students-table">
                     <thead>
                         <tr>
                             <th>Username</th>
+                            <th>Email</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
@@ -663,18 +667,23 @@
     </div>
 
     <script>
-        // REPLACE WITH YOUR ACTUAL FIREBASE WEB APP CONFIG FROM FIREBASE CONSOLE
+        // ==========================================
+        // FIREBASE CONFIGURATION SETUP
+        // ==========================================
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+          apiKey: "AIzaSyDK_1FFJnOlPfxDY9v3VgOnZbPU6ve0LEI",
+          authDomain: "self-quiz-2e412.firebaseapp.com",
+          projectId: "self-quiz-2e412",
+          storageBucket: "self-quiz-2e412.firebasestorage.app",
+          messagingSenderId: "398880518210",
+          appId: "1:398880518210:web:16c27f433bae9e56e3fddb",
+          measurementId: "G-XQGMXLXGBC"
         };
 
         // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
         const auth = firebase.auth();
         const db = firebase.firestore();
 
@@ -706,6 +715,7 @@
 
         const questionCards = document.querySelectorAll('.question-card');
         const userSelections = {};
+        const CONFIG_KEY = 'modulus_quiz_config';
         let timerInterval = null;
 
         // View Navigation
@@ -723,137 +733,122 @@
             view.classList.add('active');
         }
 
-        // Registration Handler (Using Firebase Auth)
+        // ==========================================
+        // AUTHENTICATION & REGISTRATION (FIREBASE)
+        // ==========================================
+
+        // Student Registration
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('reg-username').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
             const password = document.getElementById('reg-password').value;
-            const email = `${username.toLowerCase()}@quizportal.local`;
-
-            if (username.toLowerCase() === 'admin') {
-                registerError.textContent = 'Reserved username cannot be registered.';
-                registerError.style.display = 'block';
-                return;
-            }
 
             try {
-                const userRef = db.collection('users').doc(username);
-                const doc = await userRef.get();
-                if (doc.exists) {
-                    registerError.textContent = 'Username already exists. Please choose another.';
-                    registerError.style.display = 'block';
-                    return;
-                }
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const uid = userCredential.user.uid;
 
-                // Create secure user credentials in Firebase Auth
-                await auth.createUserWithEmailAndPassword(email, password);
-                // Register with access granted by default ('active': true)
-                await userRef.set({ role: 'student', email, active: true });
+                await db.collection('users').doc(uid).set({
+                    username: username,
+                    email: email,
+                    role: 'student',
+                    isAllowed: true,
+                    createdAt: new Date().toISOString()
+                });
 
-                localStorage.setItem('current_user', username);
-                localStorage.setItem('current_role', 'student');
-
-                document.getElementById('reg-username').value = '';
-                document.getElementById('reg-password').value = '';
                 registerError.style.display = 'none';
+                document.getElementById('reg-username').value = '';
+                document.getElementById('reg-email').value = '';
+                document.getElementById('reg-password').value = '';
 
                 currentUsernameSpan.textContent = username;
                 showView(quizView);
                 initializeQuizSession();
-            } catch (err) {
-                registerError.textContent = err.message || 'Registration error. Check network connection.';
+            } catch (error) {
+                registerError.textContent = error.message;
                 registerError.style.display = 'block';
             }
         });
 
-        // Student Login Handler (Using Firebase Auth)
+        // Student Login
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const username = document.getElementById('login-username').value.trim();
+            const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-password').value;
-            const email = `${username.toLowerCase()}@quizportal.local`;
-
-            if (username.toLowerCase() === 'admin') {
-                loginError.textContent = 'Please use the Instructor Portal to log in as admin.';
-                loginError.style.display = 'block';
-                return;
-            }
 
             try {
-                // Check if account access is revoked in Firestore first
-                const userDoc = await db.collection('users').doc(username).get();
-                if (userDoc.exists && userDoc.data().active === false) {
-                    loginError.textContent = 'Your account access has been revoked by the instructor.';
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                const uid = userCredential.user.uid;
+
+                const userDoc = await db.collection('users').doc(uid).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    if (userData.isAllowed === false) {
+                        await auth.signOut();
+                        loginError.textContent = 'Your access has been revoked by the instructor.';
+                        loginError.style.display = 'block';
+                        return;
+                    }
+
+                    document.getElementById('login-email').value = '';
+                    document.getElementById('login-password').value = '';
+                    loginError.style.display = 'none';
+
+                    currentUsernameSpan.textContent = userData.username || email;
+                    showView(quizView);
+                    initializeQuizSession();
+                } else {
+                    loginError.textContent = 'User profile data not found.';
                     loginError.style.display = 'block';
-                    return;
                 }
-
-                await auth.signInWithEmailAndPassword(email, password);
-
-                localStorage.setItem('current_user', username);
-                localStorage.setItem('current_role', 'student');
-                document.getElementById('login-username').value = '';
-                document.getElementById('login-password').value = '';
-                loginError.style.display = 'none';
-
-                currentUsernameSpan.textContent = username;
-                showView(quizView);
-                initializeQuizSession();
-            } catch (err) {
-                loginError.textContent = 'Invalid username or password.';
+            } catch (error) {
+                loginError.textContent = 'Invalid email or password.';
                 loginError.style.display = 'block';
             }
         });
 
-        // Admin Login Handler with credentials: Admin / admin#382
+        // Admin Login
         adminLoginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const username = document.getElementById('admin-username').value.trim();
+            const email = document.getElementById('admin-email').value.trim();
             const password = document.getElementById('admin-password').value;
 
             try {
-                // Must match 'Admin' and the exact password
-                if (username !== 'Admin' || password !== 'admin#382') {
-                    throw new Error('Invalid admin credentials');
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                const uid = userCredential.user.uid;
+
+                const userDoc = await db.collection('users').doc(uid).get();
+                if (userDoc.exists && userDoc.data().role === 'admin') {
+                    document.getElementById('admin-email').value = '';
+                    document.getElementById('admin-password').value = '';
+                    adminLoginError.style.display = 'none';
+
+                    showView(adminView);
+                    loadAdminDashboard();
+                } else {
+                    await auth.signOut();
+                    adminLoginError.textContent = 'Unauthorized: Instructor privileges required.';
+                    adminLoginError.style.display = 'block';
                 }
-
-                // Safely handle Firebase auth so placeholder keys don't block login
-                try {
-                    const adminEmail = 'admin@quizportal.local';
-                    await auth.signInWithEmailAndPassword(adminEmail, password).catch(async () => {
-                        await auth.createUserWithEmailAndPassword(adminEmail, password).catch(() => {});
-                    });
-                } catch (firebaseErr) {
-                    console.warn("Firebase auth bypassed for local testing");
-                }
-
-                localStorage.setItem('current_user', 'Admin');
-                localStorage.setItem('current_role', 'admin');
-                document.getElementById('admin-username').value = '';
-                document.getElementById('admin-password').value = '';
-                adminLoginError.style.display = 'none';
-
-                showView(adminView);
-                loadAdminDashboard();
-            } catch (err) {
-                adminLoginError.textContent = 'Invalid admin username or password (Expected: Admin / admin#382).';
+            } catch (error) {
+                adminLoginError.textContent = 'Invalid admin credentials.';
                 adminLoginError.style.display = 'block';
             }
         });
 
-        // Logout Handlers
+        // Logout Handler
         async function handleLogout() {
             if (timerInterval) clearInterval(timerInterval);
             await auth.signOut();
-            localStorage.removeItem('current_user');
-            localStorage.removeItem('current_role');
             showView(loginView);
         }
 
         logoutBtn.addEventListener('click', handleLogout);
         adminLogoutBtn.addEventListener('click', handleLogout);
 
-        // Quiz Option Selection
+        // ==========================================
+        // QUIZ INTERACTIONS & TIMER LOGIC
+        // ==========================================
         questionCards.forEach(card => {
             const options = card.querySelectorAll('.options li');
             const qNum = card.getAttribute('data-question');
@@ -867,11 +862,9 @@
             });
         });
 
-        document.getElementById('submit-btn').addEventListener('click', () => {
-            submitQuiz();
-        });
+        document.getElementById('submit-btn').addEventListener('click', submitQuiz);
 
-        function submitQuiz() {
+        async function submitQuiz() {
             if (timerInterval) clearInterval(timerInterval);
             document.getElementById('timer-box').style.display = 'none';
 
@@ -908,8 +901,18 @@
 
             document.getElementById('submit-btn').style.display = 'none';
 
-            const currentUser = localStorage.getItem('current_user') || 'Anonymous';
-            saveResult(currentUser, score, totalQuestions, percentage);
+            const currentUser = auth.currentUser ? (currentUsernameSpan.textContent || auth.currentUser.email) : 'Anonymous';
+            
+            try {
+                await db.collection('results').add({
+                    username: currentUser,
+                    score: `${score}/${totalQuestions}`,
+                    percentage: percentage,
+                    date: new Date().toLocaleString()
+                });
+            } catch (err) {
+                console.error("Error saving result to Firebase: ", err);
+            }
         }
 
         function resetQuizForm() {
@@ -921,11 +924,7 @@
             questionCards.forEach(card => {
                 const options = card.querySelectorAll('.options li');
                 const explanation = card.querySelector('.explanation');
-
-                options.forEach(option => {
-                    option.classList.remove('selected', 'correct', 'incorrect');
-                });
-
+                options.forEach(option => option.classList.remove('selected', 'correct', 'incorrect'));
                 explanation.classList.remove('visible');
             });
 
@@ -941,50 +940,12 @@
             initializeQuizSession();
         });
 
-        // Save Result to Firestore
-        async function saveResult(username, score, total, percentage) {
-            try {
-                await db.collection('results').add({
-                    username,
-                    score: `${score}/${total}`,
-                    rawScore: score,
-                    percentage,
-                    date: new Date().toLocaleString(),
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            } catch (err) {
-                console.error("Error saving result to Firestore: ", err);
-            }
-        }
-
-        // Initialize Quiz Session
-        async function initializeQuizSession() {
+        function initializeQuizSession() {
             resetQuizForm();
+            const config = JSON.parse(localStorage.getItem(CONFIG_KEY)) || { start: '', end: '', timerEnabled: false, timerMins: 10 };
             const accessErrorElem = document.getElementById('quiz-access-error');
             const quizFormElem = document.getElementById('quiz-form');
             const timerBox = document.getElementById('timer-box');
-            const currentUser = localStorage.getItem('current_user');
-
-            // Verify status on load
-            if (currentUser) {
-                const userDoc = await db.collection('users').doc(currentUser).get();
-                if (userDoc.exists && userDoc.data().active === false) {
-                    accessErrorElem.textContent = 'Your access has been revoked by the instructor.';
-                    accessErrorElem.style.display = 'block';
-                    quizFormElem.style.display = 'none';
-                    return;
-                }
-            }
-
-            let config = { start: '', end: '', timerEnabled: false, timerMins: 10 };
-            try {
-                const configDoc = await db.collection('settings').doc('quizConfig').get();
-                if (configDoc.exists) {
-                    config = configDoc.data();
-                }
-            } catch (err) {
-                console.error("Error fetching config:", err);
-            }
 
             document.getElementById('student-start-date').textContent = config.start ? new Date(config.start).toLocaleString() : 'No restriction';
             document.getElementById('student-end-date').textContent = config.end ? new Date(config.end).toLocaleString() : 'No restriction';
@@ -1029,36 +990,27 @@
             }
         }
 
-        // Admin Config Save to Firestore
-        configForm.addEventListener('submit', async (e) => {
+        configForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const start = document.getElementById('config-start').value;
             const end = document.getElementById('config-end').value;
             const timerEnabled = document.getElementById('config-timer-toggle').checked;
             const timerMins = parseInt(document.getElementById('config-timer-mins').value) || 10;
 
-            try {
-                await db.collection('settings').doc('quizConfig').set({ start, end, timerEnabled, timerMins });
-                alert("Quiz configuration saved to Firebase successfully!");
-            } catch (err) {
-                alert("Error saving configuration to Firebase.");
-            }
+            const config = { start, end, timerEnabled, timerMins };
+            localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+            alert("Quiz configuration saved successfully!");
         });
 
-        // Load Instructor Dashboard Analytics from Firestore
+        // ==========================================
+        // ADMIN DASHBOARD & USER ACCESS CONTROL
+        // ==========================================
         async function loadAdminDashboard() {
-            try {
-                const configDoc = await db.collection('settings').doc('quizConfig').get();
-                if (configDoc.exists) {
-                    const config = configDoc.data();
-                    document.getElementById('config-start').value = config.start || '';
-                    document.getElementById('config-end').value = config.end || '';
-                    document.getElementById('config-timer-toggle').checked = config.timerEnabled;
-                    document.getElementById('config-timer-mins').value = config.timerMins;
-                }
-            } catch (err) {
-                console.error("Error loading config:", err);
-            }
+            const config = JSON.parse(localStorage.getItem(CONFIG_KEY)) || { start: '', end: '', timerEnabled: false, timerMins: 10 };
+            document.getElementById('config-start').value = config.start || '';
+            document.getElementById('config-end').value = config.end || '';
+            document.getElementById('config-timer-toggle').checked = config.timerEnabled;
+            document.getElementById('config-timer-mins').value = config.timerMins;
 
             const tbody = document.getElementById('results-tbody');
             const totalAttemptsElem = document.getElementById('stat-total-attempts');
@@ -1067,11 +1019,11 @@
             const passRateElem = document.getElementById('stat-pass-rate');
             
             tbody.innerHTML = '';
-
+            
             try {
-                const snapshot = await db.collection('results').orderBy('timestamp', 'desc').get();
+                const resultsSnapshot = await db.collection('results').get();
                 let results = [];
-                snapshot.forEach(doc => results.push(doc.data()));
+                resultsSnapshot.forEach(doc => results.push(doc.data()));
 
                 totalAttemptsElem.textContent = results.length;
 
@@ -1105,7 +1057,7 @@
                     passRateElem.textContent = Math.round((passCount / results.length) * 100) + '%';
                 }
             } catch (err) {
-                console.error("Error loading results:", err);
+                console.error("Error loading results: ", err);
             }
 
             loadStudentsManagementTable();
@@ -1116,91 +1068,67 @@
             studentsTbody.innerHTML = '';
 
             try {
-                const snapshot = await db.collection('users').get();
-                let studentEntries = [];
-                snapshot.forEach(doc => {
-                    if (doc.id.toLowerCase() !== 'admin') {
-                        studentEntries.push({ username: doc.id, data: doc.data() });
-                    }
-                });
-
-                if (studentEntries.length === 0) {
-                    studentsTbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #718096;">No registered students found.</td></tr>`;
+                const usersSnapshot = await db.collection('users').where('role', '==', 'student').get();
+                
+                if (usersSnapshot.empty) {
+                    studentsTbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #718096;">No registered students found.</td></tr>`;
                     return;
                 }
 
-                studentEntries.forEach((entry) => {
-                    const username = entry.username;
-                    const isActive = entry.data.active !== false; // default to true if undefined
-                    const statusText = isActive 
-                        ? `<span style="color: var(--success-color); font-weight:600;">Active</span>` 
-                        : `<span style="color: var(--error-color); font-weight:600;">Revoked</span>`;
-                    
-                    const toggleActionBtn = isActive
-                        ? `<button type="button" class="btn btn-danger btn-small" onclick="toggleStudentAccess('${escapeHtml(username)}', false)">Revoke Access</button>`
-                        : `<button type="button" class="btn btn-success btn-small" onclick="toggleStudentAccess('${escapeHtml(username)}', true)">Grant Access</button>`;
+                usersSnapshot.forEach(docSnap => {
+                    const student = docSnap.data();
+                    const userId = docSnap.id;
+                    const isAllowed = student.isAllowed !== false;
 
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td>${escapeHtml(username)}</td>
-                        <td>${statusText}</td>
+                        <td>${escapeHtml(student.username || 'N/A')}</td>
+                        <td>${escapeHtml(student.email || 'N/A')}</td>
+                        <td><span style="color: ${isAllowed ? 'var(--success-color)' : 'var(--error-color)'}; font-weight:600;">${isAllowed ? 'Allowed' : 'Revoked'}</span></td>
                         <td>
-                            ${toggleActionBtn}
-                            <button type="button" class="btn btn-reset btn-small" onclick="deleteStudent('${escapeHtml(username)}')">Remove</button>
+                            <button type="button" class="btn btn-small ${isAllowed ? 'btn-danger' : 'btn-success'}" onclick="toggleUserAccess('${userId}', ${isAllowed})">
+                                ${isAllowed ? 'Revoke Access' : 'Allow Access'}
+                            </button>
                         </td>
                     `;
                     studentsTbody.appendChild(tr);
                 });
             } catch (err) {
-                console.error("Error loading students:", err);
+                console.error("Error loading students list: ", err);
             }
         }
 
-        window.toggleStudentAccess = async function(username, grantState) {
+        window.toggleUserAccess = async function(userId, currentStatus) {
+            const newStatus = !currentStatus;
             try {
-                await db.collection('users').doc(username).update({ active: grantState });
+                await db.collection('users').doc(userId).update({ isAllowed: newStatus });
+                alert(`User access successfully ${newStatus ? 'granted' : 'revoked'}.`);
                 loadStudentsManagementTable();
             } catch (err) {
-                alert("Error updating student access status.");
-            }
-        };
-
-        window.deleteStudent = async function(username) {
-            if (confirm(`Are you sure you want to remove student account "${username}"?`)) {
-                await db.collection('users').doc(username).delete();
-                loadStudentsManagementTable();
+                alert("Error updating user status: " + err.message);
             }
         };
 
         clearDataBtn.addEventListener('click', async () => {
-            if (confirm("Are you sure you want to clear all student attempt records from Firebase?")) {
-                const snapshot = await db.collection('results').get();
-                const batch = db.batch();
-                snapshot.forEach(doc => batch.delete(doc.ref));
-                await batch.commit();
-                loadAdminDashboard();
+            if (confirm("Are you sure you want to clear all student attempt records?")) {
+                try {
+                    const snapshot = await db.collection('results').get();
+                    const batch = db.batch();
+                    snapshot.docs.forEach(doc => batch.delete(doc.ref));
+                    await batch.commit();
+                    loadAdminDashboard();
+                    alert("All attempt records cleared.");
+                } catch (err) {
+                    alert("Error clearing records: " + err.message);
+                }
             }
         });
 
         function escapeHtml(text) {
+            if (!text) return '';
             const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-            return text.replace(/[&<>"']/g, m => map[m]);
+            return text.toString().replace(/[&<>"']/g, m => map[m]);
         }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedUser = localStorage.getItem('current_user');
-            const savedRole = localStorage.getItem('current_role');
-            if (savedUser && savedRole) {
-                if (savedRole === 'admin') {
-                    showView(adminView);
-                    loadAdminDashboard();
-                } else {
-                    currentUsernameSpan.textContent = savedUser;
-                    showView(quizView);
-                    initializeQuizSession();
-                }
-            }
-        });
     </script>
 </body>
 </html>
