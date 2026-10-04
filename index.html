@@ -3,383 +3,368 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Modulus Equations - Portal, Quiz & Admin</title>
+    <title>Academic Portal, Quiz & Admin Dashboard</title>
     
-    <!-- Firebase App (Compat SDKs for easy integration) -->
+    <!-- Firebase App (Compat SDKs) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
     <style>
         :root {
-            --primary-color: #2c3e50;
-            --accent-color: #3498db;
-            --success-color: #27ae60;
-            --error-color: #c0392b;
-            --bg-color: #f8f9fa;
+            --primary-gradient: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            --accent-gradient: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --danger-gradient: linear-gradient(135deg, #cb2d3e 0%, #ef473a 100%);
+            --shiny-bg: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --card-shiny: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.98) 100%);
+            --primary-color: #1e3c72;
+            --accent-color: #0072ff;
+            --success-color: #11998e;
+            --error-color: #cb2d3e;
+            --bg-color: #eef2f3;
             --card-bg: #ffffff;
-            --text-color: #333333;
-            --border-color: #e2e8f0;
+            --text-color: #2c3e50;
+            --border-color: #cbd5e1;
+            --shadow: 0 15px 35px rgba(0, 0, 0, 0.08), 0 5px 15px rgba(0,0,0,0.05);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        * { box-sizing: border-box; }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
+            background: var(--shiny-bg);
+            background-attachment: fixed;
             color: var(--text-color);
             line-height: 1.6;
             margin: 0;
-            padding: 20px;
+            padding: 15px;
         }
 
         .container {
-            max-width: 850px;
+            max-width: 100%;
+            width: 100%;
             margin: 0 auto;
-            background: var(--card-bg);
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            background: var(--card-shiny);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            animation: fadeIn 0.5s ease-out;
+            border: 1px solid rgba(255, 255, 255, 0.8);
         }
 
         header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             border-bottom: 2px solid var(--border-color);
             padding-bottom: 20px;
         }
 
         header h1 {
             color: var(--primary-color);
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            font-size: clamp(1.8rem, 4vw, 2.4rem);
+            font-weight: 800;
         }
 
-        header p {
-            color: #666;
-            font-size: 1.1rem;
-        }
+        header p { color: #555; font-size: clamp(1rem, 2vw, 1.15rem); font-weight: 500; }
 
-        .view {
-            display: none;
-        }
-        .view.active {
-            display: block;
-        }
+        .view { display: none; animation: fadeIn 0.4s ease-in-out; }
+        .view.active { display: block; }
 
         .auth-box {
-            max-width: 400px;
+            max-width: 650px;
+            width: 100%;
             margin: 30px auto;
-            padding: 30px;
-            background: #fff;
+            padding: 40px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        .auth-box::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 6px;
+            background: var(--accent-gradient);
         }
         .auth-box h2 {
             text-align: center;
             color: var(--primary-color);
             margin-top: 0;
+            margin-bottom: 25px;
         }
-        .auth-box input {
+        .auth-box input, .auth-box select {
             width: 100%;
-            padding: 12px;
-            margin: 10px 0 20px 0;
+            padding: 14px 18px;
+            margin: 8px 0 20px 0;
             border: 1px solid var(--border-color);
-            border-radius: 6px;
+            border-radius: 10px;
             font-size: 1rem;
-            box-sizing: border-box;
+            background: #fff;
         }
-        .auth-box label {
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: var(--primary-color);
-        }
-        .toggle-links {
-            text-align: center;
-            margin-top: 15px;
-            font-size: 0.9rem;
-        }
-        .toggle-link {
-            color: var(--accent-color);
-            cursor: pointer;
-            display: block;
-            margin-top: 8px;
-        }
-        .toggle-link:hover {
-            text-decoration: underline;
-        }
+        .auth-box label { font-weight: 600; font-size: 0.95rem; color: var(--primary-color); }
+        .toggle-links { text-align: center; margin-top: 20px; font-size: 0.95rem; }
+        .toggle-link { color: var(--accent-color); cursor: pointer; display: block; margin-top: 10px; font-weight: 600; }
         .error-msg {
             color: var(--error-color);
-            font-size: 0.85rem;
-            margin-bottom: 10px;
+            background: #fdf2f2;
+            border: 1px solid #fde8e8;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            margin-bottom: 20px;
             text-align: center;
             display: none;
         }
 
-        /* Quiz Cards & Circular Choices */
         .question-card {
-            background: #fff;
+            background: linear-gradient(135deg, #ffffff 0%, #fdfefe 100%);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 14px;
             padding: 25px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            margin-bottom: 25px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.03);
+            width: 100%;
         }
 
         .question-title {
-            font-size: 1.2rem;
-            font-weight: 600;
+            font-size: clamp(1.1rem, 2.5vw, 1.25rem);
+            font-weight: 700;
             color: var(--primary-color);
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         .options {
             list-style-type: none;
             padding: 0;
-            margin: 15px 0;
+            margin: 15px 0 0 0;
+            width: 100%;
         }
 
         .options li {
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            padding: 12px 15px;
-            margin-bottom: 10px;
-            border-radius: 6px;
+            background: #f8fafc;
+            border: 2px solid var(--border-color);
+            padding: 14px 18px;
+            margin-bottom: 12px;
+            border-radius: 10px;
             cursor: pointer;
-            transition: all 0.2s ease;
             display: flex;
             align-items: center;
+            font-weight: 500;
+            font-size: clamp(0.95rem, 2vw, 1.05rem);
+            width: 100%;
         }
 
         .options li::before {
             content: '';
             display: inline-block;
-            width: 18px;
-            height: 18px;
-            border: 2px solid #cbd5e0;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #94a3b8;
             border-radius: 50%;
-            margin-right: 12px;
-            transition: all 0.2s ease;
+            margin-right: 15px;
             flex-shrink: 0;
             background: #fff;
         }
 
-        .options li:hover {
-            background: #edf2f7;
-            border-color: var(--accent-color);
-        }
-
         .options li.selected {
-            background: #ebf8ff;
+            background: #e0f2fe;
             border-color: var(--accent-color);
             font-weight: 600;
+            color: #0369a1;
         }
 
         .options li.selected::before {
             border-color: var(--accent-color);
             background-color: var(--accent-color);
-            box-shadow: inset 0 0 0 3px #fff;
+            box-shadow: inset 0 0 0 4px #fff;
         }
 
         .options li.correct {
-            background: #d4edda !important;
+            background: #d1fae5 !important;
             border-color: var(--success-color) !important;
-            color: #155724;
+            color: #065f46;
             font-weight: 600;
         }
         .options li.correct::before {
             border-color: var(--success-color);
             background-color: var(--success-color);
-            box-shadow: inset 0 0 0 3px #fff;
+            box-shadow: inset 0 0 0 4px #fff;
         }
 
         .options li.incorrect {
-            background: #f8d7da !important;
+            background: #fee2e2 !important;
             border-color: var(--error-color) !important;
-            color: #721c24;
+            color: #991b1b;
         }
 
-        .explanation {
+        .explanation, .answer-box {
             display: none;
             margin-top: 15px;
-            background: #ebf8ff;
-            border: 1px solid #bee3f8;
-            border-radius: 6px;
-            padding: 15px;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 1px solid #bae6fd;
+            border-radius: 10px;
+            padding: 18px;
         }
-
-        .explanation.visible {
-            display: block;
-        }
-
-        .explanation h4 {
-            margin: 0 0 8px 0;
-            color: #2b6cb0;
-        }
-
-        .explanation p {
-            margin: 0;
-            color: #2d3748;
-        }
-
-        .quiz-controls {
-            text-align: center;
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 2px solid var(--border-color);
-        }
+        .explanation.visible, .answer-box.visible { display: block; }
+        .explanation h4, .answer-box h4 { margin: 0 0 6px 0; color: #0369a1; font-size: 1.05rem; }
+        .explanation p, .answer-box p { margin: 0; color: #334155; font-size: 0.95rem; }
 
         .btn {
-            background-color: var(--accent-color);
+            background: var(--accent-gradient);
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 24px;
             font-size: 1rem;
             font-weight: 600;
-            border-radius: 6px;
+            border-radius: 10px;
             cursor: pointer;
-            transition: background 0.2s;
-            margin-right: 10px;
+            transition: var(--transition);
+            box-shadow: 0 6px 20px rgba(0, 114, 255, 0.25);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
-
-        .btn:hover {
-            background-color: #2980b9;
-        }
-
-        .btn-reset {
-            background-color: #7f8c8d;
-        }
-        .btn-reset:hover {
-            background-color: #707b7c;
-        }
-
-        .btn-danger {
-            background-color: var(--error-color);
-        }
-        .btn-danger:hover {
-            background-color: #a93226;
-        }
-
-        .btn-success {
-            background-color: var(--success-color);
-        }
-        .btn-success:hover {
-            background-color: #219653;
-        }
-
-        .btn-small {
-            padding: 5px 10px;
-            font-size: 0.85rem;
-        }
+        .btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
+        .btn-reset { background: linear-gradient(135deg, #64748b 0%, #475569 100%); }
+        .btn-danger { background: var(--danger-gradient); }
+        .btn-success { background: var(--success-gradient); }
+        .btn-small { padding: 6px 14px; font-size: 0.85rem; }
 
         #score-display {
             display: none;
             margin-top: 25px;
-            padding: 20px;
-            background: #e8f4fd;
-            border: 2px solid var(--accent-color);
-            border-radius: 8px;
+            padding: 25px;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border: 2px solid var(--success-color);
+            border-radius: 16px;
             text-align: center;
-            font-size: 1.3rem;
+            font-size: clamp(1.1rem, 2.5vw, 1.4rem);
             font-weight: bold;
             color: var(--primary-color);
+            box-shadow: var(--shadow);
         }
+
+        .simulation-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+        .simulation-content {
+            background: #fff;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 450px;
+            width: 100%;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+            border: 2px solid #38ef7d;
+        }
+        .confetti-badge { font-size: 3.5rem; margin-bottom: 10px; }
 
         .stats-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
             gap: 15px;
             margin-bottom: 25px;
         }
-
         .stat-card {
-            background: var(--bg-color);
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
             border: 1px solid var(--border-color);
-            padding: 15px;
-            border-radius: 8px;
+            padding: 18px;
+            border-radius: 12px;
             text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            position: relative;
+            overflow: hidden;
         }
-
-        .stat-card h4 {
-            margin: 0 0 5px 0;
-            color: #718096;
-            font-size: 0.85rem;
-        }
-
-        .stat-card .stat-value {
-            font-size: 1.4rem;
-            font-weight: bold;
-            color: var(--primary-color);
-            margin: 0;
-        }
+        .stat-card h4 { margin: 0 0 8px 0; color: #64748b; font-size: 0.8rem; text-transform: uppercase; }
+        .stat-card .stat-value { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 800; color: var(--primary-color); margin: 0; }
 
         .admin-section {
             background: #fff;
             border: 1px solid var(--border-color);
             padding: 20px;
-            border-radius: 8px;
+            border-radius: 14px;
             margin-bottom: 25px;
         }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
+        .admin-section h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+            border-bottom: 2px solid var(--bg-color);
+            padding-bottom: 10px;
         }
 
-        th, td {
-            border: 1px solid var(--border-color);
-            padding: 10px;
-            text-align: left;
-            font-size: 0.95rem;
-        }
-
-        th {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        tr:nth-child(even) {
-            background-color: var(--bg-color);
-        }
+        .table-responsive { width: 100%; overflow-x: auto; margin-top: 15px; border-radius: 10px; border: 1px solid var(--border-color); }
+        table { width: 100%; border-collapse: collapse; min-width: 500px; }
+        th, td { padding: 12px 15px; text-align: left; font-size: 0.95rem; border-bottom: 1px solid var(--border-color); }
+        th { background-color: var(--primary-color); color: white; font-weight: 600; }
+        tr:nth-child(even) { background-color: #f8fafc; }
 
         .user-header {
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
-            background: #edf2f7;
-            padding: 10px 20px;
-            border-radius: 6px;
+            gap: 15px;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            padding: 15px 20px;
+            border-radius: 12px;
             margin-bottom: 25px;
         }
 
         .quiz-meta-banner {
-            background: #e2e8f0;
-            padding: 10px 15px;
-            border-radius: 6px;
+            background: #edf2f7;
+            padding: 12px 18px;
+            border-radius: 10px;
             margin-bottom: 20px;
             display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
             justify-content: space-between;
             font-size: 0.9rem;
             color: var(--primary-color);
             font-weight: 600;
+            border-left: 5px solid var(--accent-color);
         }
 
         #timer-box {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeeba;
-            padding: 10px 15px;
-            border-radius: 6px;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #92400e;
+            border: 1px solid #fcd34d;
+            padding: 12px;
+            border-radius: 10px;
             font-weight: bold;
             text-align: center;
             margin-bottom: 20px;
             display: none;
         }
 
-        footer {
-            text-align: center;
-            margin-top: 40px;
-            font-size: 0.9rem;
-            color: #718096;
+        footer { text-align: center; margin-top: 35px; font-size: 0.9rem; color: #64748b; }
+
+        @media (max-width: 768px) {
+            body { padding: 5px; }
+            .container { padding: 15px; }
+            .auth-box { padding: 25px 15px; }
+            .btn { width: 100%; }
         }
     </style>
 </head>
@@ -389,20 +374,20 @@
         <!-- VIEW 1: STUDENT LOGIN PORTAL -->
         <div id="login-view" class="view active">
             <div class="auth-box">
-                <h2>Student Login</h2>
+                <h2>🎓 Student Login Portal</h2>
                 <div id="login-error" class="error-msg"></div>
                 <form id="login-form">
                     <label for="login-email">Email Address</label>
-                    <input type="email" id="login-email" required autocomplete="email">
+                    <input type="email" id="login-email" required autocomplete="email" placeholder="student@university.edu">
                     
                     <label for="login-password">Password</label>
-                    <input type="password" id="login-password" required autocomplete="current-password">
+                    <input type="password" id="login-password" required autocomplete="current-password" placeholder="••••••••">
                     
-                    <button type="submit" class="btn" style="width:100%;">Log In</button>
+                    <button type="submit" class="btn" style="width:100%; margin-top: 10px;">Log In to Portal</button>
                 </form>
                 <div class="toggle-links">
                     <span class="toggle-link" id="to-register">Don't have an account? Register here</span>
-                    <span class="toggle-link" id="to-admin-login" style="font-weight: 600; color: #2c3e50;">Instructor / Admin Portal</span>
+                    <span class="toggle-link" id="to-admin-login" style="color: var(--primary-color);">Instructor / Admin Portal</span>
                 </div>
             </div>
         </div>
@@ -410,19 +395,19 @@
         <!-- VIEW 2: STUDENT REGISTRATION PORTAL -->
         <div id="register-view" class="view">
             <div class="auth-box">
-                <h2>Student Registration</h2>
+                <h2>✨ Student Registration Portal</h2>
                 <div id="register-error" class="error-msg"></div>
                 <form id="register-form">
                     <label for="reg-username">Full Name / Username</label>
-                    <input type="text" id="reg-username" required autocomplete="username">
+                    <input type="text" id="reg-username" required placeholder="Birhanu Mekonen">
 
                     <label for="reg-email">Email Address</label>
-                    <input type="email" id="reg-email" required autocomplete="email">
+                    <input type="email" id="reg-email" required placeholder="student@university.edu">
                     
                     <label for="reg-password">Choose Password</label>
-                    <input type="password" id="reg-password" required autocomplete="new-password">
+                    <input type="password" id="reg-password" required placeholder="••••••••">
                     
-                    <button type="submit" class="btn" style="width:100%;">Register & Log In</button>
+                    <button type="submit" class="btn btn-success" style="width:100%; margin-top: 10px;">Create Account & Log In</button>
                 </form>
                 <div class="toggle-links">
                     <span class="toggle-link" id="to-login">Already have an account? Log in</span>
@@ -433,16 +418,16 @@
         <!-- VIEW 3: ADMIN LOGIN PORTAL -->
         <div id="admin-login-view" class="view">
             <div class="auth-box">
-                <h2>Instructor Portal</h2>
+                <h2>🛡 Instructor Portal</h2>
                 <div id="admin-login-error" class="error-msg"></div>
                 <form id="admin-login-form">
                     <label for="admin-email">Admin Email</label>
-                    <input type="email" id="admin-email" required autocomplete="email">
+                    <input type="email" id="admin-email" required placeholder="instructor@university.edu">
                     
                     <label for="admin-password">Admin Password</label>
-                    <input type="password" id="admin-password" required autocomplete="current-password">
+                    <input type="password" id="admin-password" required placeholder="••••••••">
                     
-                    <button type="submit" class="btn" style="background-color: var(--primary-color); width:100%;">Access Dashboard</button>
+                    <button type="submit" class="btn" style="background: var(--primary-gradient); width:100%; margin-top: 10px;">Access Instructor Dashboard</button>
                 </form>
                 <div class="toggle-links">
                     <span class="toggle-link" id="back-to-student">Back to Student Login</span>
@@ -453,8 +438,8 @@
         <!-- VIEW 4: QUIZ INTERFACE -->
         <div id="quiz-view" class="view">
             <header>
-                <h1>Advanced Modulus Equations</h1>
-                <p>Interactive Practice Quiz</p>
+                <h1 id="quiz-main-title">Grade 9 - Mathematics - Unit 1</h1>
+                <p>Interactive Practice Quiz & Resource Center</p>
             </header>
 
             <div class="user-header">
@@ -462,105 +447,78 @@
                 <button type="button" class="btn btn-reset btn-small" id="logout-btn">Log Out</button>
             </div>
 
-            <div class="quiz-meta-banner">
-                <div>Opens: <span id="student-start-date">Not set</span></div>
-                <div>Closes: <span id="student-end-date">Not set</span></div>
+            <!-- Grade, Subject & Unit Selection Box -->
+            <div class="admin-section" style="background: #f8fafc;">
+                <h3>📚 Select Grade Level, Subject and Unit</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 15px; align-items: end; margin-top: 15px;">
+                    <div>
+                        <label for="select-grade">Grade Level</label>
+                        <select id="select-grade">
+                            <option value="Grade 9">Grade 9</option>
+                            <option value="Grade 10">Grade 10</option>
+                            <option value="Grade 11">Grade 11</option>
+                            <option value="Grade 12">Grade 12</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="select-subject">Subject</label>
+                        <select id="select-subject">
+                            <option value="Mathematics">Mathematics</option>
+                            <option value="Physics">Physics</option>
+                            <option value="Economics">Economics</option>
+                            <option value="Biology">Biology</option>
+                            <option value="Chemistry">Chemistry</option>
+                            <option value="History">History</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="select-unit">Unit</label>
+                        <select id="select-unit">
+                            <option value="1">Unit 1</option>
+                            <option value="2">Unit 2</option>
+                            <option value="3">Unit 3</option>
+                            <option value="4">Unit 4</option>
+                            <option value="5">Unit 5</option>
+                            <option value="6">Unit 6</option>
+                            <option value="7">Unit 7</option>
+                            <option value="8">Unit 8</option>
+                            <option value="9">Unit 9</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button type="button" class="btn" id="load-subject-btn" style="width: 100%; height: 46px;">🚀 Load Content</button>
+                    </div>
+                </div>
             </div>
 
-            <div id="timer-box">Time Remaining: <span id="time-left">--:--</span></div>
-            <div id="quiz-access-error" class="error-msg" style="display:none; font-size:1.1rem; padding:20px; background:#f8d7da; border-radius:6px; margin-bottom:20px;"></div>
+            <div id="student-materials-box" class="admin-section" style="display:none; background: #f0fdf4; border-color: #bbf7d0;">
+                <h3 style="color: #166534; border-color: #bbf7d0;">📄 Available Study Materials & Documents</h3>
+                <ul id="student-materials-list" style="margin: 10px 0 0 20px; padding:0;"></ul>
+            </div>
 
-            <form id="quiz-form">
-                <!-- Question 1 -->
-                <div class="question-card" data-question="1" data-answer="C">
-                    <div class="question-title">Question 1: Nested Absolute Values</div>
-                    <p>Find all real values of <em>x</em> that satisfy the nested modulus equation: <strong>||x - 2| - 3| = 5</strong></p>
-                    <ul class="options">
-                        <li data-value="A">A) x = {-6, 2, 10}</li>
-                        <li data-value="B">B) x = {-4, 10}</li>
-                        <li data-value="C">C) x = {-6, 10}</li>
-                        <li data-value="D">D) x = {-2, 6}</li>
-                    </ul>
-                    <div class="explanation">
-                        <h4>Solution & Rationale</h4>
-                        <p><strong>Correct Answer: C) x = {-6, 10}</strong><br>
-                        The outer modulus gives two cases: |x - 2| - 3 = 5 &rarr; x = 10 or x = -6.</p>
-                    </div>
-                </div>
+            <div class="quiz-meta-banner">
+                <div>🔓 Opens: <span id="student-start-date">Not set</span></div>
+                <div>🔒 Closes: <span id="student-end-date">Not set</span></div>
+                <div>🔄 Attempts Remaining: <span id="attempts-remaining-display">--</span></div>
+            </div>
 
-                <!-- Question 2 -->
-                <div class="question-card" data-question="2" data-answer="C">
-                    <div class="question-title">Question 2: Parameter Constraints & Solutions</div>
-                    <p>Determine the total number of real solutions to the equation: <strong>|x² - 4x + 3| = x - 1</strong></p>
-                    <ul class="options">
-                        <li data-value="A">A) 1 solution</li>
-                        <li data-value="B">B) 2 solutions</li>
-                        <li data-value="C">C) 3 solutions</li>
-                        <li data-value="D">D) 4 solutions</li>
-                    </ul>
-                    <div class="explanation">
-                        <h4>Solution & Rationale</h4>
-                        <p><strong>Correct Answer: C) 3 solutions</strong><br>
-                        Factoring yields |(x - 1)(x - 3)| = x - 1, producing valid solutions at x = 1, 2, and 4.</p>
-                    </div>
-                </div>
+            <div id="start-quiz-container" class="admin-section" style="text-align: center; background: #fffbeb; border-color: #fde68a; padding: 30px;">
+                <h3 style="color: #92400e; border: none; margin-bottom: 10px;">Ready to Begin Quiz?</h3>
+                <p style="color: #78350f; margin-bottom: 20px; font-size: 1rem;">Clicking start will load your questions across the full screen width and begin your active countdown timer.</p>
+                <button type="button" class="btn btn-success" id="start-quiz-btn" style="padding: 14px 35px; font-size: 1.1rem;">▶️ Start Quiz Now</button>
+            </div>
 
-                <!-- Question 3 -->
-                <div class="question-card" data-question="3" data-answer="A">
-                    <div class="question-title">Question 3: Sum of Solutions</div>
-                    <p>Find the sum of all real solutions to the equation: <strong>|2x - 3| + |x + 1| = 6</strong></p>
-                    <ul class="options">
-                        <li data-value="A">A) 4/3</li>
-                        <li data-value="B">B) 2</li>
-                        <li data-value="C">C) 8/3</li>
-                        <li data-value="D">D) 3</li>
-                    </ul>
-                    <div class="explanation">
-                        <h4>Solution & Rationale</h4>
-                        <p><strong>Correct Answer: A) 4/3</strong><br>
-                        Testing critical intervals gives valid solutions at x = 8/3 and x = -4/3. Their sum is 4/3.</p>
-                    </div>
-                </div>
+            <div id="timer-box">⏱️ Time Remaining: <span id="time-left">--:--</span></div>
+            <div id="quiz-access-error" class="error-msg" style="display:none; font-size:1rem; padding:18px; background:#fff5f5; border-color:#fed7d7; border-radius:10px; margin-bottom:20px;"></div>
 
-                <!-- Question 4 -->
-                <div class="question-card" data-question="4" data-answer="B">
-                    <div class="question-title">Question 4: Geometric Interpretation</div>
-                    <p>For what specific real value of <em>k</em> does the equation <strong>|x - 1| + |x - 5| = k</strong> possess infinitely many solutions?</p>
-                    <ul class="options">
-                        <li data-value="A">A) k = 2</li>
-                        <li data-value="B">B) k = 4</li>
-                        <li data-value="C">C) k = 6</li>
-                        <li data-value="D">D) No such value exists</li>
-                    </ul>
-                    <div class="explanation">
-                        <h4>Solution & Rationale</h4>
-                        <p><strong>Correct Answer: B) k = 4</strong><br>
-                        The distance between 1 and 5 is 4, meaning every point in the closed interval [1, 5] satisfies the equation.</p>
-                    </div>
-                </div>
+            <div id="quiz-container-wrapper" style="width: 100%;">
+                <form id="quiz-form" style="display: none; width: 100%;"></form>
+            </div>
 
-                <!-- Question 5 -->
-                <div class="question-card" data-question="5" data-answer="A">
-                    <div class="question-title">Question 5: Product of Solutions</div>
-                    <p>Find the product of all real solutions to the equation: <strong>|x + 2| + |x - 2| = 6</strong></p>
-                    <ul class="options">
-                        <li data-value="A">A) -9</li>
-                        <li data-value="B">B) -6</li>
-                        <li data-value="C">C) 9</li>
-                        <li data-value="D">D) 36</li>
-                    </ul>
-                    <div class="explanation">
-                        <h4>Solution & Rationale</h4>
-                        <p><strong>Correct Answer: A) -9</strong><br>
-                        Solving the interval cases yields x = 3 and x = -3. Their product is -9.</p>
-                    </div>
-                </div>
-
-                <div class="quiz-controls" id="quiz-buttons-container">
-                    <button type="button" class="btn" id="submit-btn">Submit Quiz</button>
-                    <button type="button" class="btn btn-reset" id="reset-btn">Reset Quiz</button>
-                </div>
-            </form>
+            <div id="quiz-buttons-container" class="quiz-controls" style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 2px solid var(--border-color); display:none;">
+                <button type="button" class="btn btn-success" id="submit-btn" style="padding: 14px 30px; font-size: 1.05rem;">✅ Submit Quiz Answers</button>
+                <button type="button" class="btn btn-reset" id="reset-btn" style="padding: 14px 25px; font-size: 1.05rem;">🔄 Reset Quiz</button>
+            </div>
 
             <div id="score-display"></div>
         </div>
@@ -568,8 +526,8 @@
         <!-- VIEW 5: ADMIN / INSTRUCTOR DASHBOARD -->
         <div id="admin-view" class="view">
             <header>
-                <h1>Instructor Dashboard</h1>
-                <p>Student Submissions, Performance Analytics & Settings</p>
+                <h1>🛡️ Instructor Dashboard</h1>
+                <p>Student Submissions, Grade/Subject Access, HTML Question File Management & Settings</p>
             </header>
 
             <div class="user-header">
@@ -577,99 +535,281 @@
                 <button type="button" class="btn btn-reset btn-small" id="admin-logout-btn">Log Out</button>
             </div>
 
-            <!-- Quiz Configuration Section -->
             <div class="admin-section">
-                <h3>Quiz Access & Timer Settings</h3>
+                <h3>⚙️ Grade, Subject & Unit Loading Permissions (Access Lock)</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 15px; align-items: end; margin-top: 15px;">
+                    <div>
+                        <label for="lock-grade">Grade Level</label>
+                        <select id="lock-grade">
+                            <option value="Grade 9">Grade 9</option>
+                            <option value="Grade 10">Grade 10</option>
+                            <option value="Grade 11">Grade 11</option>
+                            <option value="Grade 12">Grade 12</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="lock-subject">Subject</label>
+                        <select id="lock-subject">
+                            <option value="Mathematics">Mathematics</option>
+                            <option value="Physics">Physics</option>
+                            <option value="Economics">Economics</option>
+                            <option value="Biology">Biology</option>
+                            <option value="Chemistry">Chemistry</option>
+                            <option value="History">History</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="lock-unit">Unit</label>
+                        <select id="lock-unit">
+                            <option value="1">Unit 1</option>
+                            <option value="2">Unit 2</option>
+                            <option value="3">Unit 3</option>
+                            <option value="4">Unit 4</option>
+                            <option value="5">Unit 5</option>
+                            <option value="6">Unit 6</option>
+                            <option value="7">Unit 7</option>
+                            <option value="8">Unit 8</option>
+                            <option value="9">Unit 9</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button type="button" id="toggle-lock-btn" class="btn btn-success" style="width: 100%; height: 46px;">🔓 Allow Loading</button>
+                    </div>
+                </div>
+                <div id="lock-status-badge" style="margin-top: 15px; font-weight: 600; font-size: 0.95rem; color: var(--success-color);">Current Status for Selected Module: Allowed</div>
+            </div>
+
+            <div class="admin-section">
+                <h3>⏱️ Quiz Access, Timer & Attempt Limits</h3>
                 <form id="config-form" style="display: grid; gap: 15px; margin-top: 15px;">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                         <div>
                             <label for="config-start">Access Start Date & Time</label>
-                            <input type="datetime-local" id="config-start" style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:4px; display:block; margin-top:5px; box-sizing:border-box;">
+                            <input type="datetime-local" id="config-start" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:10px; display:block; margin-top:6px;">
                         </div>
                         <div>
                             <label for="config-end">Access End Date & Time</label>
-                            <input type="datetime-local" id="config-end" style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:4px; display:block; margin-top:5px; box-sizing:border-box;">
+                            <input type="datetime-local" id="config-end" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:10px; display:block; margin-top:6px;">
                         </div>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                            <input type="checkbox" id="config-timer-toggle"> Enable Timer (Minutes)
-                        </label>
-                        <input type="number" id="config-timer-mins" min="1" placeholder="e.g., 15" style="width: 100px; padding: 6px; border:1px solid var(--border-color); border-radius:4px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; align-items: center;">
+                        <div>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600;">
+                                <input type="checkbox" id="config-timer-toggle" style="width:18px; height:18px;"> Enable Countdown Timer (Minutes)
+                            </label>
+                            <input type="number" id="config-timer-mins" min="1" placeholder="e.g., 15" style="width: 100%; padding: 10px; border:1px solid var(--border-color); border-radius:10px; margin-top:6px;">
+                        </div>
+                        <div>
+                            <label for="config-max-attempts">Max Allowed Attempts / Resets</label>
+                            <input type="number" id="config-max-attempts" min="1" value="3" style="width: 100%; padding: 10px; border:1px solid var(--border-color); border-radius:10px; margin-top:6px;">
+                        </div>
                     </div>
-                    <button type="submit" class="btn" style="width: auto;">Save Configuration</button>
+                    <button type="submit" class="btn" style="width: auto;">Save Quiz Configuration</button>
                 </form>
             </div>
 
-            <!-- Summary Stats & Result Analysis -->
+            <!-- HTML FILE UPLOADER FOR QUESTIONS -->
+            <div class="admin-section">
+                <h3>📝 Upload HTML Question File (.html)</h3>
+                <p style="font-size: 0.9rem; color: #64748b;">Upload a complete saved <code>.html</code> file containing interactive questions with answers and explanations.</p>
+                <form id="html-question-upload-form" style="display: grid; gap: 15px; margin-top: 15px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                        <div>
+                            <label for="q-upload-grade">Grade Level</label>
+                            <select id="q-upload-grade" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:10px; background:#fff; margin-top:6px;">
+                                <option value="Grade 9">Grade 9</option>
+                                <option value="Grade 10">Grade 10</option>
+                                <option value="Grade 11">Grade 11</option>
+                                <option value="Grade 12">Grade 12</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="q-upload-subject">Subject</label>
+                            <select id="q-upload-subject" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:10px; background:#fff; margin-top:6px;">
+                                <option value="Mathematics">Mathematics</option>
+                                <option value="Physics">Physics</option>
+                                <option value="Economics">Economics</option>
+                                <option value="Biology">Biology</option>
+                                <option value="Chemistry">Chemistry</option>
+                                <option value="History">History</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="q-upload-unit">Unit</label>
+                            <select id="q-upload-unit" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:10px; background:#fff; margin-top:6px;">
+                                <option value="1">Unit 1</option>
+                                <option value="2">Unit 2</option>
+                                <option value="3">Unit 3</option>
+                                <option value="4">Unit 4</option>
+                                <option value="5">Unit 5</option>
+                                <option value="6">Unit 6</option>
+                                <option value="7">Unit 7</option>
+                                <option value="8">Unit 8</option>
+                                <option value="9">Unit 9</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="html-file-input">Select Questions HTML File (.html)</label>
+                        <input type="file" id="html-file-input" accept=".html,.htm" required style="display:block; margin-top:8px;">
+                    </div>
+                    <button type="submit" class="btn btn-success" style="width: auto;">📤 Upload & Deploy HTML Questions</button>
+                </form>
+
+                <h4 style="margin-top: 25px; color: var(--primary-color);">Uploaded HTML Question Files List</h4>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Grade Level</th>
+                                <th>Subject</th>
+                                <th>Unit</th>
+                                <th>File Name</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="html-questions-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- File Upload Section (.doc and .pdf) -->
+            <div class="admin-section">
+                <h3>📁 Upload Study Material / Document (PDF or DOC)</h3>
+                <form id="upload-form" style="display: grid; gap: 15px; margin-top: 15px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                        <div>
+                            <label for="upload-grade">Grade Level</label>
+                            <select id="upload-grade" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:10px; background:#fff; margin-top:6px;">
+                                <option value="Grade 9">Grade 9</option>
+                                <option value="Grade 10">Grade 10</option>
+                                <option value="Grade 11">Grade 11</option>
+                                <option value="Grade 12">Grade 12</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="upload-subject">Target Subject</label>
+                            <select id="upload-subject" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:10px; background:#fff; margin-top:6px;">
+                                <option value="Mathematics">Mathematics</option>
+                                <option value="Physics">Physics</option>
+                                <option value="Economics">Economics</option>
+                                <option value="Biology">Biology</option>
+                                <option value="Chemistry">Chemistry</option>
+                                <option value="History">History</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="upload-unit">Target Unit</label>
+                            <select id="upload-unit" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:10px; background:#fff; margin-top:6px;">
+                                <option value="1">Unit 1</option>
+                                <option value="2">Unit 2</option>
+                                <option value="3">Unit 3</option>
+                                <option value="4">Unit 4</option>
+                                <option value="5">Unit 5</option>
+                                <option value="6">Unit 6</option>
+                                <option value="7">Unit 7</option>
+                                <option value="8">Unit 8</option>
+                                <option value="9">Unit 9</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="file-input">Select Document (.pdf, .doc, .docx)</label>
+                        <input type="file" id="file-input" accept=".pdf,.doc,.docx" required style="display:block; margin-top:8px;">
+                    </div>
+                    <button type="submit" class="btn btn-success" style="width: auto;">📤 Upload Material</button>
+                </form>
+
+                <h4 style="margin-top: 25px; color: var(--primary-color);">Uploaded Study Materials List</h4>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Grade</th>
+                                <th>Subject</th>
+                                <th>Unit</th>
+                                <th>File Name</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="files-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
             <div class="stats-container">
                 <div class="stat-card">
-                    <h4>Total Attempts</h4>
+                    <h4>📊 Total Attempts</h4>
                     <p class="stat-value" id="stat-total-attempts">0</p>
                 </div>
                 <div class="stat-card">
-                    <h4>Average Score</h4>
+                    <h4>📈 Average Score</h4>
                     <p class="stat-value" id="stat-avg-score">0%</p>
                 </div>
                 <div class="stat-card">
-                    <h4>Highest Score</h4>
+                    <h4>🏆 Highest Score</h4>
                     <p class="stat-value" id="stat-high-score">0%</p>
                 </div>
                 <div class="stat-card">
-                    <h4>Pass Rate (&ge;60%)</h4>
+                    <h4>🎯 Pass Rate (&ge;60%)</h4>
                     <p class="stat-value" id="stat-pass-rate">0%</p>
                 </div>
             </div>
 
-            <!-- Student Management Section (Allow/Revoke Access & Delete) -->
             <div class="admin-section">
-                <h3>Registered Students Management & Access Control</h3>
-                <table id="students-table">
-                    <thead>
-                        <tr>
-                            <th>Username</th>
-                            <th>Email</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="students-tbody">
-                        <!-- Dynamic student rows -->
-                    </tbody>
-                </table>
+                <h3>👥 Registered Students Management & Access Control</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="students-tbody"></tbody>
+                    </table>
+                </div>
             </div>
 
-            <!-- Attempt Records Section -->
             <div class="admin-section">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3>Student Attempt Records</h3>
+                <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;">
+                    <h3>📝 Student Attempt Records</h3>
                     <button type="button" class="btn btn-danger btn-small" id="clear-data-btn">Clear All Records</button>
                 </div>
-                <table id="results-table">
-                    <thead>
-                        <tr>
-                            <th>Username</th>
-                            <th>Score</th>
-                            <th>Percentage</th>
-                            <th>Date & Time</th>
-                        </tr>
-                    </thead>
-                    <tbody id="results-tbody">
-                        <!-- Dynamic rows injected via JS -->
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Username & Module</th>
+                                <th>Score</th>
+                                <th>Percentage</th>
+                                <th>Date & Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-tbody"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
         <footer>
-            <p>Advanced Mathematical Practice Module</p>
+            <p>Advanced Educational Practice Portal & Academic Management System</p>
         </footer>
     </div>
 
+    <!-- Simulation Modal for Congratulations -->
+    <div id="simulation-modal" class="simulation-modal">
+        <div class="simulation-content">
+            <div id="sim-badge" class="confetti-badge">🎉</div>
+            <h2 id="sim-title">Congratulations!</h2>
+            <p id="sim-message">You performed exceptionally well on this quiz trial.</p>
+            <button type="button" class="btn btn-success" onclick="closeSimulationModal()">Continue to Review</button>
+        </div>
+    </div>
+
     <script>
-        // ==========================================
-        // FIREBASE CONFIGURATION SETUP
-        // ==========================================
         const firebaseConfig = {
           apiKey: "AIzaSyDK_1FFJnOlPfxDY9v3VgOnZbPU6ve0LEI",
           authDomain: "self-quiz-2e412.firebaseapp.com",
@@ -680,14 +820,35 @@
           measurementId: "G-XQGMXLXGBC"
         };
 
-        // Initialize Firebase
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // DOM Elements
+        const baseQuizDatabase = {
+            "Grade 9": {
+                "Mathematics": {
+                    "1": [
+                        {
+                            qNum: 1,
+                            title: "Question 1: Nested Absolute Values",
+                            text: "Find all real values of <em>x</em> that satisfy the nested modulus equation: <strong>||x - 2| - 3| = 5</strong>",
+                            answer: "C",
+                            options: [
+                                { val: "A", text: "A) x = {-6, 2, 10}" },
+                                { val: "B", text: "B) x = {-4, 10}" },
+                                { val: "C", text: "C) x = {-6, 10}" },
+                                { val: "D", text: "D) x = {-2, 6}" }
+                            ],
+                            explanationTitle: "Solution & Rationale",
+                            explanationText: "<strong>Correct Answer: C) x = {-6, 10}</strong><br>The outer modulus gives two cases: |x - 2| - 3 = 5 &rarr; x = 10 or x = -6."
+                        }
+                    ]
+                }
+            }
+        };
+
         const loginView = document.getElementById('login-view');
         const registerView = document.getElementById('register-view');
         const adminLoginView = document.getElementById('admin-login-view');
@@ -698,6 +859,8 @@
         const registerForm = document.getElementById('register-form');
         const adminLoginForm = document.getElementById('admin-login-form');
         const configForm = document.getElementById('config-form');
+        const uploadForm = document.getElementById('upload-form');
+        const htmlQuestionUploadForm = document.getElementById('html-question-upload-form');
 
         const loginError = document.getElementById('login-error');
         const registerError = document.getElementById('register-error');
@@ -713,12 +876,11 @@
         const adminLogoutBtn = document.getElementById('admin-logout-btn');
         const clearDataBtn = document.getElementById('clear-data-btn');
 
-        const questionCards = document.querySelectorAll('.question-card');
         const userSelections = {};
         const CONFIG_KEY = 'modulus_quiz_config';
+        const PERMISSIONS_KEY = 'grade_subject_unit_permissions';
         let timerInterval = null;
 
-        // View Navigation
         toRegisterLink.addEventListener('click', () => { loginError.style.display = 'none'; showView(registerView); });
         toLoginLink.addEventListener('click', () => { registerError.style.display = 'none'; showView(loginView); });
         toAdminLoginLink.addEventListener('click', () => { loginError.style.display = 'none'; showView(adminLoginView); });
@@ -731,13 +893,9 @@
             quizView.classList.remove('active');
             adminView.classList.remove('active');
             view.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // ==========================================
-        // AUTHENTICATION & REGISTRATION (FIREBASE)
-        // ==========================================
-
-        // Student Registration
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('reg-username').value.trim();
@@ -757,12 +915,9 @@
                 });
 
                 registerError.style.display = 'none';
-                document.getElementById('reg-username').value = '';
-                document.getElementById('reg-email').value = '';
-                document.getElementById('reg-password').value = '';
-
                 currentUsernameSpan.textContent = username;
                 showView(quizView);
+                loadSubjectQuestions();
                 initializeQuizSession();
             } catch (error) {
                 registerError.textContent = error.message;
@@ -770,7 +925,6 @@
             }
         });
 
-        // Student Login
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('login-email').value.trim();
@@ -790,12 +944,10 @@
                         return;
                     }
 
-                    document.getElementById('login-email').value = '';
-                    document.getElementById('login-password').value = '';
                     loginError.style.display = 'none';
-
                     currentUsernameSpan.textContent = userData.username || email;
                     showView(quizView);
+                    loadSubjectQuestions();
                     initializeQuizSession();
                 } else {
                     loginError.textContent = 'User profile data not found.';
@@ -807,7 +959,6 @@
             }
         });
 
-        // Admin Login
         adminLoginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('admin-email').value.trim();
@@ -819,10 +970,7 @@
 
                 const userDoc = await db.collection('users').doc(uid).get();
                 if (userDoc.exists && userDoc.data().role === 'admin') {
-                    document.getElementById('admin-email').value = '';
-                    document.getElementById('admin-password').value = '';
                     adminLoginError.style.display = 'none';
-
                     showView(adminView);
                     loadAdminDashboard();
                 } else {
@@ -831,13 +979,11 @@
                     adminLoginError.style.display = 'block';
                 }
             } catch (error) {
-                // FIXED: Displays the actual Firebase error message instead of generic text
                 adminLoginError.textContent = error.message;
                 adminLoginError.style.display = 'block';
             }
         });
 
-        // Logout Handler
         async function handleLogout() {
             if (timerInterval) clearInterval(timerInterval);
             await auth.signOut();
@@ -847,20 +993,182 @@
         logoutBtn.addEventListener('click', handleLogout);
         adminLogoutBtn.addEventListener('click', handleLogout);
 
-        // ==========================================
-        // QUIZ INTERACTIONS & TIMER LOGIC
-        // ==========================================
-        questionCards.forEach(card => {
-            const options = card.querySelectorAll('.options li');
-            const qNum = card.getAttribute('data-question');
+        function isModuleAllowed(grade, subject, unit) {
+            const permissions = JSON.parse(localStorage.getItem(PERMISSIONS_KEY)) || {};
+            const key = `${grade}_${subject}_${unit}`;
+            return permissions[key] !== false;
+        }
 
-            options.forEach(option => {
-                option.addEventListener('click', () => {
-                    options.forEach(opt => opt.classList.remove('selected'));
-                    option.classList.add('selected');
-                    userSelections[qNum] = option.getAttribute('data-value');
+        async function loadSubjectQuestions() {
+            const grade = document.getElementById('select-grade').value;
+            const subject = document.getElementById('select-subject').value;
+            const unit = document.getElementById('select-unit').value;
+            document.getElementById('quiz-main-title').textContent = `${grade} - ${subject} - Unit ${unit}`;
+
+            const quizForm = document.getElementById('quiz-form');
+            const accessErrorElem = document.getElementById('quiz-access-error');
+            const startContainer = document.getElementById('start-quiz-container');
+            const buttonsContainer = document.getElementById('quiz-buttons-container');
+            quizForm.innerHTML = '';
+
+            if (!isModuleAllowed(grade, subject, unit)) {
+                accessErrorElem.textContent = `🔒 Loading for ${grade} ${subject} Unit ${unit} has been locked by the instructor.`;
+                accessErrorElem.style.display = 'block';
+                startContainer.style.display = 'none';
+                quizForm.style.display = 'none';
+                buttonsContainer.style.display = 'none';
+                return;
+            }
+
+            accessErrorElem.style.display = 'none';
+            startContainer.style.display = 'block';
+            quizForm.style.display = 'none';
+            buttonsContainer.style.display = 'none';
+
+            // Check if uploaded custom HTML questions exist for this module
+            try {
+                const snapshot = await db.collection('custom_html_questions')
+                    .where('grade', '==', grade)
+                    .where('subject', '==', subject)
+                    .where('unit', '==', unit)
+                    .get();
+
+                if (!snapshot.empty) {
+                    const docData = snapshot.docs[0].data();
+                    quizForm.innerHTML = `<div class="html-uploaded-content" style="width:100%;">${docData.htmlContent}</div>`;
+                    
+                    // Wire up interactivity and security for uploaded HTML question cards
+                    const uploadedCards = quizForm.querySelectorAll('.question-card');
+                    uploadedCards.forEach((card, idx) => {
+                        const qNum = idx + 1;
+                        card.setAttribute('data-question', qNum);
+                        
+                        // Fix 1: Ensure explanations are strictly hidden until submission (robust selector)
+                        const explanation = card.querySelector('.explanation, .answer-box');
+                        if (explanation) {
+                            explanation.classList.remove('visible');
+                            explanation.style.display = 'none';
+                        }
+
+                        // Fix 2: Auto-detect data-answer if missing from card attribute
+                        if (!card.getAttribute('data-answer') && explanation) {
+                            const match = explanation.textContent.match(/Correct\s*Answer[:\s]*([A-D])/i);
+                            if (match) {
+                                card.setAttribute('data-answer', match[1].toUpperCase());
+                            }
+                        }
+                        
+                        const options = card.querySelectorAll('.options li');
+                        options.forEach(option => {
+                            if (!option.getAttribute('data-value')) {
+                                const text = option.textContent.trim();
+                                const firstChar = text.charAt(0).toUpperCase();
+                                option.setAttribute('data-value', firstChar);
+                            }
+                            
+                            option.addEventListener('click', () => {
+                                options.forEach(opt => opt.classList.remove('selected'));
+                                option.classList.add('selected');
+                                userSelections[qNum] = option.getAttribute('data-value');
+                            });
+                        });
+                    });
+                    return;
+                }
+            } catch (err) {
+                console.error("Error fetching uploaded HTML question file:", err);
+            }
+
+            let questions = [];
+            if (baseQuizDatabase[grade]?.[subject]?.[unit]) {
+                questions = [...baseQuizDatabase[grade][subject][unit]];
+            }
+
+            if (!questions || questions.length === 0) {
+                quizForm.innerHTML = `<div style="text-align:center; padding: 30px; color: #718096; background:#fff; border:1px solid var(--border-color); border-radius:12px;"><h3>No quiz questions available for ${grade} - ${subject} Unit ${unit} yet. Please check back after your instructor uploads them.</h3></div>`;
+                return;
+            }
+
+            questions.forEach((q, idx) => {
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.setAttribute('data-question', idx + 1);
+                card.setAttribute('data-answer', q.answer);
+
+                let optionsHtml = '';
+                q.options.forEach(opt => {
+                    optionsHtml += `<li data-value="${opt.val}">${opt.text}</li>`;
+                });
+
+                card.innerHTML = `
+                    <div class="question-title">📌 ${q.title}</div>
+                    <div style="font-size: 1rem;">${q.text}</div>
+                    <ul class="options">${optionsHtml}</ul>
+                    <div class="explanation" style="display: none;">
+                        <h4>💡 ${q.explanationTitle}</h4>
+                        <div>${q.explanationText}</div>
+                    </div>
+                `;
+                quizForm.appendChild(card);
+            });
+
+            const questionCards = quizForm.querySelectorAll('.question-card');
+            questionCards.forEach(card => {
+                const options = card.querySelectorAll('.options li');
+                const qNum = card.getAttribute('data-question');
+
+                options.forEach(option => {
+                    option.addEventListener('click', () => {
+                        options.forEach(opt => opt.classList.remove('selected'));
+                        option.classList.add('selected');
+                        userSelections[qNum] = option.getAttribute('data-value');
+                    });
                 });
             });
+        }
+
+        document.getElementById('load-subject-btn').addEventListener('click', () => {
+            const grade = document.getElementById('select-grade').value;
+            const subject = document.getElementById('select-subject').value;
+            const unit = document.getElementById('select-unit').value;
+            resetQuizForm();
+            loadSubjectQuestions();
+            initializeQuizSession();
+            loadStudentMaterials(grade, subject, unit);
+        });
+
+        document.getElementById('start-quiz-btn').addEventListener('click', async () => {
+            const currentUser = auth.currentUser ? (currentUsernameSpan.textContent || auth.currentUser.email) : 'Anonymous';
+            const grade = document.getElementById('select-grade').value;
+            const subject = document.getElementById('select-subject').value;
+            const unit = document.getElementById('select-unit').value;
+            const config = JSON.parse(localStorage.getItem(CONFIG_KEY)) || { maxAttempts: 3 };
+
+            try {
+                const snapshot = await db.collection('results')
+                    .where('username', '==', currentUser)
+                    .where('grade', '==', grade)
+                    .where('subject', '==', subject)
+                    .where('unit', '==', unit)
+                    .get();
+
+                const attemptCount = snapshot.size;
+                const maxAttempts = config.maxAttempts || 3;
+
+                if (attemptCount >= maxAttempts) {
+                    alert(`You have reached the maximum allowed attempts (${maxAttempts}) for this quiz module.`);
+                    return;
+                }
+                document.getElementById('attempts-remaining-display').textContent = maxAttempts - attemptCount;
+            } catch (err) {
+                console.error("Error verifying attempt count:", err);
+            }
+
+            document.getElementById('start-quiz-container').style.display = 'none';
+            document.getElementById('quiz-form').style.display = 'block';
+            document.getElementById('quiz-buttons-container').style.display = 'block';
+
+            startCountdownTimer();
         });
 
         document.getElementById('submit-btn').addEventListener('click', submitQuiz);
@@ -869,27 +1177,38 @@
             if (timerInterval) clearInterval(timerInterval);
             document.getElementById('timer-box').style.display = 'none';
 
+            const questionCards = document.querySelectorAll('.question-card');
+            if (questionCards.length === 0) {
+                document.getElementById('score-display').style.display = 'block';
+                document.getElementById('score-display').innerHTML = `🎉 HTML Quiz Module Completed & Submitted!`;
+                document.getElementById('submit-btn').style.display = 'none';
+                return;
+            }
+
             let score = 0;
             const totalQuestions = questionCards.length;
 
             questionCards.forEach(card => {
                 const qNum = card.getAttribute('data-question');
-                const correctAnswer = card.getAttribute('data-answer');
+                const correctAnswer = (card.getAttribute('data-answer') || '').trim().toUpperCase();
                 const options = card.querySelectorAll('.options li');
-                const explanation = card.querySelector('.explanation');
+                const explanation = card.querySelector('.explanation, .answer-box');
                 
-                explanation.classList.add('visible');
+                if (explanation) {
+                    explanation.style.display = 'block'; // Reveal on submit explicitly
+                    explanation.classList.add('visible');
+                }
 
                 options.forEach(option => {
-                    const val = option.getAttribute('data-value');
+                    const val = (option.getAttribute('data-value') || '').trim().toUpperCase();
                     if (val === correctAnswer) {
                         option.classList.add('correct');
-                    } else if (val === userSelections[qNum]) {
+                    } else if (val === (userSelections[qNum] || '').trim().toUpperCase()) {
                         option.classList.add('incorrect');
                     }
                 });
 
-                if (userSelections[qNum] === correctAnswer) {
+                if ((userSelections[qNum] || '').trim().toUpperCase() === correctAnswer) {
                     score++;
                 }
             });
@@ -897,16 +1216,23 @@
             const percentage = Math.round((score / totalQuestions) * 100);
             const scoreDisplay = document.getElementById('score-display');
             scoreDisplay.style.display = 'block';
-            scoreDisplay.innerHTML = `Quiz Completed! You scored ${score} out of ${totalQuestions} (${percentage}%)`;
+            scoreDisplay.innerHTML = `🎉 Quiz Completed! You scored ${score} out of ${totalQuestions} (${percentage}%)`;
             scoreDisplay.scrollIntoView({ behavior: 'smooth' });
 
             document.getElementById('submit-btn').style.display = 'none';
+            triggerCongratulationsSimulation(percentage);
 
             const currentUser = auth.currentUser ? (currentUsernameSpan.textContent || auth.currentUser.email) : 'Anonymous';
+            const grade = document.getElementById('select-grade').value;
+            const subject = document.getElementById('select-subject').value;
+            const unit = document.getElementById('select-unit').value;
             
             try {
                 await db.collection('results').add({
                     username: currentUser,
+                    grade: grade,
+                    subject: subject,
+                    unit: unit,
                     score: `${score}/${totalQuestions}`,
                     percentage: percentage,
                     date: new Date().toLocaleString()
@@ -916,57 +1242,186 @@
             }
         }
 
+        function triggerCongratulationsSimulation(percentage) {
+            const modal = document.getElementById('simulation-modal');
+            const title = document.getElementById('sim-title');
+            const message = document.getElementById('sim-message');
+            const badge = document.getElementById('sim-badge');
+
+            if (percentage === 100) {
+                badge.textContent = "🏆";
+                title.textContent = "Outstanding! 100% Perfect!";
+                message.textContent = "Flawless performance! You mastered every concept in this quiz trial effortlessly.";
+            } else if (percentage >= 80) {
+                badge.textContent = "🌟";
+                title.textContent = "Very Good!";
+                message.textContent = `Great job! You scored ${percentage}%. You have a strong grasp of the study materials.`;
+            } else if (percentage >= 60) {
+                badge.textContent = "👍";
+                title.textContent = "Good Effort!";
+                message.textContent = `You scored ${percentage}%. Keep reviewing the explanations below to improve even further!`;
+            } else {
+                badge.textContent = "💡";
+                title.textContent = "Trial Completed";
+                message.textContent = `You scored ${percentage}%. Review the highlighted correct answers and explanations below to strengthen your understanding.`;
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        window.closeSimulationModal = function() {
+            document.getElementById('simulation-modal').style.display = 'none';
+        }
+
         function resetQuizForm() {
             if (timerInterval) clearInterval(timerInterval);
             for (let key in userSelections) {
                 delete userSelections[key];
             }
 
+            const questionCards = document.querySelectorAll('.question-card');
             questionCards.forEach(card => {
                 const options = card.querySelectorAll('.options li');
-                const explanation = card.querySelector('.explanation');
+                const explanation = card.querySelector('.explanation, .answer-box');
                 options.forEach(option => option.classList.remove('selected', 'correct', 'incorrect'));
-                explanation.classList.remove('visible');
+                if (explanation) {
+                    explanation.classList.remove('visible');
+                    explanation.style.display = 'none'; // Re-hide explanation on reset
+                }
             });
 
             const scoreDisplay = document.getElementById('score-display');
             scoreDisplay.style.display = 'none';
             scoreDisplay.innerHTML = '';
-            document.getElementById('submit-btn').style.display = 'inline-block';
+            const submitBtn = document.getElementById('submit-btn');
+            if (submitBtn) {
+                submitBtn.style.display = 'inline-flex';
+            }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        document.getElementById('reset-btn').addEventListener('click', () => {
+        document.getElementById('reset-btn').addEventListener('click', async () => {
+            const currentUser = auth.currentUser ? (currentUsernameSpan.textContent || auth.currentUser.email) : 'Anonymous';
+            const grade = document.getElementById('select-grade').value;
+            const subject = document.getElementById('select-subject').value;
+            const unit = document.getElementById('select-unit').value;
+            const config = JSON.parse(localStorage.getItem(CONFIG_KEY)) || { maxAttempts: 3 };
+
+            try {
+                const snapshot = await db.collection('results')
+                    .where('username', '==', currentUser)
+                    .where('grade', '==', grade)
+                    .where('subject', '==', subject)
+                    .where('unit', '==', unit)
+                    .get();
+
+                if (snapshot.size >= (config.maxAttempts || 3)) {
+                    alert("Reset limit reached. You cannot reset this quiz module further.");
+                    return;
+                }
+            } catch (err) {
+                console.error("Error checking reset limit:", err);
+            }
+
             resetQuizForm();
+            loadSubjectQuestions();
             initializeQuizSession();
         });
 
-        function initializeQuizSession() {
+        async function loadStudentMaterials(grade, subject, unit) {
+            const materialsBox = document.getElementById('student-materials-box');
+            const materialsList = document.getElementById('student-materials-list');
+            materialsList.innerHTML = '';
+
+            try {
+                const snapshot = await db.collection('materials')
+                    .where('grade', '==', grade)
+                    .where('subject', '==', subject)
+                    .where('unit', '==', unit)
+                    .get();
+
+                if (snapshot.empty) {
+                    materialsBox.style.display = 'none';
+                } else {
+                    materialsBox.style.display = 'block';
+                    snapshot.forEach(docSnap => {
+                        const mat = docSnap.data();
+                        const li = document.createElement('li');
+                        li.style.margin = '8px 0';
+                        li.innerHTML = `📄 <a href="${mat.fileData}" download="${mat.fileName}" style="color: #0369a1; font-weight: 600; text-decoration: underline;">${escapeHtml(mat.fileName)}</a> (${mat.fileType.toUpperCase()})`;
+                        materialsList.appendChild(li);
+                    });
+                }
+            } catch (err) {
+                console.error("Error loading materials:", err);
+            }
+        }
+
+        async function initializeQuizSession() {
+            const grade = document.getElementById('select-grade').value;
+            const subject = document.getElementById('select-subject').value;
+            const unit = document.getElementById('select-unit').value;
+            if (!isModuleAllowed(grade, subject, unit)) return;
+
             resetQuizForm();
-            const config = JSON.parse(localStorage.getItem(CONFIG_KEY)) || { start: '', end: '', timerEnabled: false, timerMins: 10 };
+            const config = JSON.parse(localStorage.getItem(CONFIG_KEY)) || { start: '', end: '', timerEnabled: false, timerMins: 10, maxAttempts: 3 };
             const accessErrorElem = document.getElementById('quiz-access-error');
+            const startContainer = document.getElementById('start-quiz-container');
             const quizFormElem = document.getElementById('quiz-form');
-            const timerBox = document.getElementById('timer-box');
+            const buttonsContainer = document.getElementById('quiz-buttons-container');
 
             document.getElementById('student-start-date').textContent = config.start ? new Date(config.start).toLocaleString() : 'No restriction';
             document.getElementById('student-end-date').textContent = config.end ? new Date(config.end).toLocaleString() : 'No restriction';
 
+            const currentUser = auth.currentUser ? (currentUsernameSpan.textContent || auth.currentUser.email) : 'Anonymous';
+            try {
+                const snapshot = await db.collection('results')
+                    .where('username', '==', currentUser)
+                    .where('grade', '==', grade)
+                    .where('subject', '==', subject)
+                    .where('unit', '==', unit)
+                    .get();
+                const attemptsDone = snapshot.size;
+                const max = config.maxAttempts || 3;
+                document.getElementById('attempts-remaining-display').textContent = Math.max(0, max - attemptsDone);
+
+                if (attemptsDone >= max) {
+                    accessErrorElem.textContent = `🔒 You have exhausted your maximum allowed attempts (${max}) for this quiz.`;
+                    accessErrorElem.style.display = 'block';
+                    startContainer.style.display = 'none';
+                    quizFormElem.style.display = 'none';
+                    buttonsContainer.style.display = 'none';
+                    return;
+                }
+            } catch (err) {
+                console.error("Error loading attempt stats:", err);
+            }
+
             const now = new Date();
             if (config.start && new Date(config.start) > now) {
-                accessErrorElem.textContent = `Quiz is not accessible yet. Opens on: ${new Date(config.start).toLocaleString()}`;
+                accessErrorElem.textContent = `⏳ Quiz is not accessible yet. Opens on: ${new Date(config.start).toLocaleString()}`;
                 accessErrorElem.style.display = 'block';
+                startContainer.style.display = 'none';
                 quizFormElem.style.display = 'none';
+                buttonsContainer.style.display = 'none';
                 return;
             }
             if (config.end && new Date(config.end) < now) {
-                accessErrorElem.textContent = `Quiz access has expired on: ${new Date(config.end).toLocaleString()}`;
+                accessErrorElem.textContent = `🔒 Quiz access has expired on: ${new Date(config.end).toLocaleString()}`;
                 accessErrorElem.style.display = 'block';
+                startContainer.style.display = 'none';
                 quizFormElem.style.display = 'none';
+                buttonsContainer.style.display = 'none';
                 return;
             }
 
             accessErrorElem.style.display = 'none';
-            quizFormElem.style.display = 'block';
+            startContainer.style.display = 'block';
+        }
+
+        function startCountdownTimer() {
+            const config = JSON.parse(localStorage.getItem(CONFIG_KEY)) || { timerEnabled: false, timerMins: 10 };
+            const timerBox = document.getElementById('timer-box');
 
             if (config.timerEnabled && config.timerMins > 0) {
                 let totalSeconds = config.timerMins * 60;
@@ -997,21 +1452,218 @@
             const end = document.getElementById('config-end').value;
             const timerEnabled = document.getElementById('config-timer-toggle').checked;
             const timerMins = parseInt(document.getElementById('config-timer-mins').value) || 10;
+            const maxAttempts = parseInt(document.getElementById('config-max-attempts').value) || 3;
 
-            const config = { start, end, timerEnabled, timerMins };
+            const config = { start, end, timerEnabled, timerMins, maxAttempts };
             localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
-            alert("Quiz configuration saved successfully!");
+            alert("Quiz configuration & attempt limits saved successfully!");
         });
 
-        // ==========================================
-        // ADMIN DASHBOARD & USER ACCESS CONTROL
-        // ==========================================
+        htmlQuestionUploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const grade = document.getElementById('q-upload-grade').value;
+            const subject = document.getElementById('q-upload-subject').value;
+            const unit = document.getElementById('q-upload-unit').value;
+            const fileInput = document.getElementById('html-file-input');
+            const file = fileInput.files[0];
+
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(event) {
+                const htmlContent = event.target.result;
+                try {
+                    const existing = await db.collection('custom_html_questions')
+                        .where('grade', '==', grade)
+                        .where('subject', '==', subject)
+                        .where('unit', '==', unit)
+                        .get();
+
+                    const batch = db.batch();
+                    existing.forEach(docSnap => batch.delete(docSnap.ref));
+                    await batch.commit();
+
+                    await db.collection('custom_html_questions').add({
+                        grade,
+                        subject,
+                        unit,
+                        fileName: file.name,
+                        htmlContent,
+                        uploadedAt: new Date().toISOString()
+                    });
+
+                    fileInput.value = '';
+                    alert(`HTML Question file (${file.name}) uploaded successfully for ${grade} - ${subject} Unit ${unit}!`);
+                    loadAdminHtmlQuestionsList();
+                } catch (err) {
+                    alert("Error uploading HTML question file: " + err.message);
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        async function loadAdminHtmlQuestionsList() {
+            const tbody = document.getElementById('html-questions-tbody');
+            tbody.innerHTML = '';
+            try {
+                const snapshot = await db.collection('custom_html_questions').get();
+                if (snapshot.empty) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #718096;">No HTML question files uploaded yet.</td></tr>`;
+                    return;
+                }
+                snapshot.forEach(docSnap => {
+                    const qFile = docSnap.data();
+                    const docId = docSnap.id;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${escapeHtml(qFile.grade)}</td>
+                        <td>${escapeHtml(qFile.subject)}</td>
+                        <td>Unit ${escapeHtml(qFile.unit)}</td>
+                        <td><strong>${escapeHtml(qFile.fileName)}</strong></td>
+                        <td><button type="button" class="btn btn-danger btn-small" onclick="deleteHtmlQuestionFile('${docId}')">Delete</button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error("Error loading HTML questions list:", err);
+            }
+        }
+
+        window.deleteHtmlQuestionFile = async function(docId) {
+            if (confirm("Are you sure you want to delete this HTML question file?")) {
+                try {
+                    await db.collection('custom_html_questions').doc(docId).delete();
+                    loadAdminHtmlQuestionsList();
+                    alert("HTML question file deleted.");
+                } catch (err) {
+                    alert("Error deleting file: " + err.message);
+                }
+            }
+        };
+
+        function updateLockStatusDisplay() {
+            const grade = document.getElementById('lock-grade').value;
+            const subject = document.getElementById('lock-subject').value;
+            const unit = document.getElementById('lock-unit').value;
+            const isAllowed = isModuleAllowed(grade, subject, unit);
+            const btn = document.getElementById('toggle-lock-btn');
+            const badge = document.getElementById('lock-status-badge');
+
+            if (isAllowed) {
+                btn.textContent = "🔒 Disallow Loading";
+                btn.className = "btn btn-danger";
+                badge.textContent = `Status: Loading is currently ALLOWED for ${grade} ${subject} Unit ${unit}`;
+                badge.style.color = "var(--success-color)";
+            } else {
+                btn.textContent = "🔓 Allow Loading";
+                btn.className = "btn btn-success";
+                badge.textContent = `Status: Loading is currently LOCKED for ${grade} ${subject} Unit ${unit}`;
+                badge.style.color = "var(--error-color)";
+            }
+        }
+
+        document.getElementById('lock-grade').addEventListener('change', updateLockStatusDisplay);
+        document.getElementById('lock-subject').addEventListener('change', updateLockStatusDisplay);
+        document.getElementById('lock-unit').addEventListener('change', updateLockStatusDisplay);
+
+        document.getElementById('toggle-lock-btn').addEventListener('click', () => {
+            const grade = document.getElementById('lock-grade').value;
+            const subject = document.getElementById('lock-subject').value;
+            const unit = document.getElementById('lock-unit').value;
+            const permissions = JSON.parse(localStorage.getItem(PERMISSIONS_KEY)) || {};
+            const key = `${grade}_${subject}_${unit}`;
+
+            const currentState = isModuleAllowed(grade, subject, unit);
+            permissions[key] = !currentState;
+            localStorage.setItem(PERMISSIONS_KEY, JSON.stringify(permissions));
+
+            updateLockStatusDisplay();
+            alert(`Loading permission for ${grade} ${subject} Unit ${unit} is now ${permissions[key] ? 'ALLOWED' : 'LOCKED'}.`);
+        });
+
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const grade = document.getElementById('upload-grade').value;
+            const subject = document.getElementById('upload-subject').value;
+            const unit = document.getElementById('upload-unit').value;
+            const fileInput = document.getElementById('file-input');
+            const file = fileInput.files[0];
+
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(event) {
+                const base64Data = event.target.result;
+                try {
+                    await db.collection('materials').add({
+                        grade: grade,
+                        subject: subject,
+                        unit: unit,
+                        fileName: file.name,
+                        fileType: file.name.split('.').pop(),
+                        fileData: base64Data,
+                        uploadedAt: new Date().toISOString()
+                    });
+                    fileInput.value = '';
+                    alert("Study material uploaded successfully!");
+                    loadAdminMaterialsList();
+                } catch (err) {
+                    alert("Error uploading file: " + err.message);
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+
+        async function loadAdminMaterialsList() {
+            const tbody = document.getElementById('files-tbody');
+            tbody.innerHTML = '';
+            try {
+                const snapshot = await db.collection('materials').get();
+                if (snapshot.empty) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #718096;">No study materials uploaded yet.</td></tr>`;
+                    return;
+                }
+                snapshot.forEach(docSnap => {
+                    const mat = docSnap.data();
+                    const docId = docSnap.id;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${escapeHtml(mat.grade || 'Grade 9')}</td>
+                        <td>${escapeHtml(mat.subject)}</td>
+                        <td>Unit ${escapeHtml(mat.unit)}</td>
+                        <td><a href="${mat.fileData}" download="${mat.fileName}" style="color: #0369a1; font-weight:600;">${escapeHtml(mat.fileName)}</a></td>
+                        <td><button type="button" class="btn btn-danger btn-small" onclick="deleteMaterial('${docId}')">Delete</button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error("Error loading files list:", err);
+            }
+        }
+
+        window.deleteMaterial = async function(docId) {
+            if (confirm("Are you sure you want to delete this file?")) {
+                try {
+                    await db.collection('materials').doc(docId).delete();
+                    loadAdminMaterialsList();
+                    alert("File deleted.");
+                } catch (err) {
+                    alert("Error deleting file: " + err.message);
+                }
+            }
+        };
+
         async function loadAdminDashboard() {
-            const config = JSON.parse(localStorage.getItem(CONFIG_KEY)) || { start: '', end: '', timerEnabled: false, timerMins: 10 };
+            const config = JSON.parse(localStorage.getItem(CONFIG_KEY)) || { start: '', end: '', timerEnabled: false, timerMins: 10, maxAttempts: 3 };
             document.getElementById('config-start').value = config.start || '';
             document.getElementById('config-end').value = config.end || '';
             document.getElementById('config-timer-toggle').checked = config.timerEnabled;
             document.getElementById('config-timer-mins').value = config.timerMins;
+            document.getElementById('config-max-attempts').value = config.maxAttempts || 3;
+
+            updateLockStatusDisplay();
+            loadAdminMaterialsList();
+            loadAdminHtmlQuestionsList();
 
             const tbody = document.getElementById('results-tbody');
             const totalAttemptsElem = document.getElementById('stat-total-attempts');
@@ -1045,9 +1697,9 @@
 
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
-                            <td><strong>${escapeHtml(record.username)}</strong></td>
+                            <td><strong>${escapeHtml(record.username)}</strong><br><small style="color:#64748b;">📖 ${escapeHtml(record.grade || 'Grade 9')} - ${escapeHtml(record.subject)} - Unit ${escapeHtml(record.unit)}</small></td>
                             <td>${record.score}</td>
-                            <td>${record.percentage}%</td>
+                            <td><span style="font-weight:700; color: ${record.percentage >= 60 ? 'var(--success-color)' : 'var(--error-color)'}">${record.percentage}%</span></td>
                             <td>${record.date}</td>
                         `;
                         tbody.appendChild(tr);
@@ -1085,7 +1737,7 @@
                     tr.innerHTML = `
                         <td>${escapeHtml(student.username || 'N/A')}</td>
                         <td>${escapeHtml(student.email || 'N/A')}</td>
-                        <td><span style="color: ${isAllowed ? 'var(--success-color)' : 'var(--error-color)'}; font-weight:600;">${isAllowed ? 'Allowed' : 'Revoked'}</span></td>
+                        <td><span style="color: ${isAllowed ? 'var(--success-color)' : 'var(--error-color)'}; font-weight:600;">${isAllowed ? '✅ Allowed' : '🔒 Revoked'}</span></td>
                         <td>
                             <button type="button" class="btn btn-small ${isAllowed ? 'btn-danger' : 'btn-success'}" onclick="toggleUserAccess('${userId}', ${isAllowed})">
                                 ${isAllowed ? 'Revoke Access' : 'Allow Access'}
