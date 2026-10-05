@@ -35,6 +35,31 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Live interactive sparkler and clapping effect (no vertical bouncing) */
+        @keyframes liveJitter {
+            0% { transform: scale(1) rotate(0deg); filter: brightness(1); }
+            25% { transform: scale(1.08) rotate(-3deg); filter: brightness(1.2); }
+            50% { transform: scale(0.95) rotate(3deg); filter: brightness(0.9); }
+            75% { transform: scale(1.05) rotate(-2deg); filter: brightness(1.15); }
+            100% { transform: scale(1) rotate(0deg); filter: brightness(1); }
+        }
+
+        @keyframes pulseHand {
+            0% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.12); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.9; }
+        }
+
+        .sparkle-live {
+            display: inline-block;
+            animation: liveJitter 0.4s infinite ease-in-out;
+        }
+
+        .clap-live {
+            display: inline-block;
+            animation: pulseHand 0.5s infinite ease-in-out;
+        }
+
         * { box-sizing: border-box; }
 
         body {
@@ -358,6 +383,13 @@
             display: none;
         }
 
+        .score-pill {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 700;
+        }
+
         footer { text-align: center; margin-top: 35px; font-size: 0.9rem; color: #64748b; }
 
         @media (max-width: 768px) {
@@ -395,7 +427,7 @@
         <!-- VIEW 2: STUDENT REGISTRATION PORTAL -->
         <div id="register-view" class="view">
             <div class="auth-box">
-                <h2>✨ Student Registration Portal</h2>
+                <h2>📝 Student Registration Portal</h2>
                 <div id="register-error" class="error-msg"></div>
                 <form id="register-form">
                     <label for="reg-username">Full Name / Username</label>
@@ -406,6 +438,14 @@
                     
                     <label for="reg-password">Choose Password</label>
                     <input type="password" id="reg-password" required placeholder="••••••••">
+
+                    <label for="reg-grade">Select Your Grade Level</label>
+                    <select id="reg-grade" required>
+                        <option value="Grade 9">Grade 9</option>
+                        <option value="Grade 10">Grade 10</option>
+                        <option value="Grade 11">Grade 11</option>
+                        <option value="Grade 12">Grade 12</option>
+                    </select>
                     
                     <button type="submit" class="btn btn-success" style="width:100%; margin-top: 10px;">Create Account & Log In</button>
                 </form>
@@ -418,7 +458,7 @@
         <!-- VIEW 3: ADMIN LOGIN PORTAL -->
         <div id="admin-login-view" class="view">
             <div class="auth-box">
-                <h2>🛡 Instructor Portal</h2>
+                <h2>🛡️ Instructor Portal</h2>
                 <div id="admin-login-error" class="error-msg"></div>
                 <form id="admin-login-form">
                     <label for="admin-email">Admin Email</label>
@@ -443,7 +483,10 @@
             </header>
 
             <div class="user-header">
-                <span>Logged in as: <strong id="current-username"></strong></span>
+                <div>
+                    <span>Logged in as: <strong id="current-username"></strong></span><br>
+                    <span style="font-size: 0.85rem; color: #475569;">Assigned Grade Level: <strong id="student-grade-badge" style="color: var(--accent-color);">--</strong></span>
+                </div>
                 <button type="button" class="btn btn-reset btn-small" id="logout-btn">Log Out</button>
             </div>
 
@@ -452,8 +495,8 @@
                 <h3>📚 Select Grade Level, Subject and Unit</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 15px; align-items: end; margin-top: 15px;">
                     <div>
-                        <label for="select-grade">Grade Level</label>
-                        <select id="select-grade">
+                        <label for="select-grade">Grade Level (Locked to your Grade)</label>
+                        <select id="select-grade" disabled style="background:#e2e8f0; cursor:not-allowed;">
                             <option value="Grade 9">Grade 9</option>
                             <option value="Grade 10">Grade 10</option>
                             <option value="Grade 11">Grade 11</option>
@@ -505,7 +548,7 @@
             <div id="start-quiz-container" class="admin-section" style="text-align: center; background: #fffbeb; border-color: #fde68a; padding: 30px;">
                 <h3 style="color: #92400e; border: none; margin-bottom: 10px;">Ready to Begin Quiz?</h3>
                 <p style="color: #78350f; margin-bottom: 20px; font-size: 1rem;">Clicking start will load your questions across the full screen width and begin your active countdown timer.</p>
-                <button type="button" class="btn btn-success" id="start-quiz-btn" style="padding: 14px 35px; font-size: 1.1rem;">▶️ Start Quiz Now</button>
+                <button type="button" class="btn btn-success" id="start-quiz-btn" style="padding: 14px 35px; font-size: 1.1rem;">▶ Start Quiz Now</button>
             </div>
 
             <div id="timer-box">⏱️ Time Remaining: <span id="time-left">--:--</span></div>
@@ -526,7 +569,7 @@
         <!-- VIEW 5: ADMIN / INSTRUCTOR DASHBOARD -->
         <div id="admin-view" class="view">
             <header>
-                <h1>🛡️ Instructor Dashboard</h1>
+                <h1>🛡️️ Instructor Dashboard</h1>
                 <p>Student Submissions, Grade/Subject Access, HTML Question File Management & Settings</p>
             </header>
 
@@ -580,8 +623,45 @@
             </div>
 
             <div class="admin-section">
-                <h3>⏱️ Quiz Access, Timer & Attempt Limits</h3>
-                <form id="config-form" style="display: grid; gap: 15px; margin-top: 15px;">
+                <h3>⏱ Set Countdown Timer, Access & Attempt Limits by Grade, Subject & Unit</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 15px;">
+                    <div>
+                        <label for="config-grade">Grade Level</label>
+                        <select id="config-grade" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:10px; background:#fff; margin-top:6px;">
+                            <option value="Grade 9">Grade 9</option>
+                            <option value="Grade 10">Grade 10</option>
+                            <option value="Grade 11">Grade 11</option>
+                            <option value="Grade 12">Grade 12</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="config-subject">Subject</label>
+                        <select id="config-subject" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:10px; background:#fff; margin-top:6px;">
+                            <option value="Mathematics">Mathematics</option>
+                            <option value="Physics">Physics</option>
+                            <option value="Economics">Economics</option>
+                            <option value="Biology">Biology</option>
+                            <option value="Chemistry">Chemistry</option>
+                            <option value="History">History</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="config-unit">Unit</label>
+                        <select id="config-unit" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:10px; background:#fff; margin-top:6px;">
+                            <option value="1">Unit 1</option>
+                            <option value="2">Unit 2</option>
+                            <option value="3">Unit 3</option>
+                            <option value="4">Unit 4</option>
+                            <option value="5">Unit 5</option>
+                            <option value="6">Unit 6</option>
+                            <option value="7">Unit 7</option>
+                            <option value="8">Unit 8</option>
+                            <option value="9">Unit 9</option>
+                        </select>
+                    </div>
+                </div>
+
+                <form id="config-form" style="display: grid; gap: 15px; margin-top: 20px;">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                         <div>
                             <label for="config-start">Access Start Date & Time</label>
@@ -595,7 +675,7 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; align-items: center;">
                         <div>
                             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600;">
-                                <input type="checkbox" id="config-timer-toggle" style="width:18px; height:18px;"> Enable Countdown Timer (Minutes)
+                                <input type="checkbox" id="config-timer-toggle" style="width:18px; height:18px;"> Enable Countdown Timer for this Module
                             </label>
                             <input type="number" id="config-timer-mins" min="1" placeholder="e.g., 15" style="width: 100%; padding: 10px; border:1px solid var(--border-color); border-radius:10px; margin-top:6px;">
                         </div>
@@ -604,7 +684,7 @@
                             <input type="number" id="config-max-attempts" min="1" value="3" style="width: 100%; padding: 10px; border:1px solid var(--border-color); border-radius:10px; margin-top:6px;">
                         </div>
                     </div>
-                    <button type="submit" class="btn" style="width: auto;">Save Quiz Configuration</button>
+                    <button type="submit" class="btn" style="width: auto;">Save Configuration for Selected Module</button>
                 </form>
             </div>
 
@@ -764,6 +844,7 @@
                             <tr>
                                 <th>Username</th>
                                 <th>Email</th>
+                                <th>Grade Level</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -778,12 +859,69 @@
                     <h3>📝 Student Attempt Records</h3>
                     <button type="button" class="btn btn-danger btn-small" id="clear-data-btn">Clear All Records</button>
                 </div>
+
+                <!-- UNIQUE EXCEL DOWNLOAD FILTER BUILDER -->
+                <div style="background: #f8fafc; padding: 18px; border-radius: 12px; margin-top: 15px; border: 1px solid var(--border-color);">
+                    <h4 style="margin-top:0; color: var(--primary-color); font-size:1.05rem;">📥 Download Unique Filtered Excel / CSV Report</h4>
+                    <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 12px;">Select specific criteria below to download a tailored CSV file with student scores formatted properly (e.g., 2 out of 5).</p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px; align-items: end;">
+                        <div>
+                            <label for="dl-grade" style="font-size:0.85rem; font-weight:600;">Grade Level</label>
+                            <select id="dl-grade" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); background:#fff; margin-top:4px;">
+                                <option value="All">All Grades</option>
+                                <option value="Grade 9">Grade 9</option>
+                                <option value="Grade 10">Grade 10</option>
+                                <option value="Grade 11">Grade 11</option>
+                                <option value="Grade 12">Grade 12</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="dl-subject" style="font-size:0.85rem; font-weight:600;">Subject</label>
+                            <select id="dl-subject" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); background:#fff; margin-top:4px;">
+                                <option value="All">All Subjects</option>
+                                <option value="Mathematics">Mathematics</option>
+                                <option value="Physics">Physics</option>
+                                <option value="Economics">Economics</option>
+                                <option value="Biology">Biology</option>
+                                <option value="Chemistry">Chemistry</option>
+                                <option value="History">History</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="dl-unit" style="font-size:0.85rem; font-weight:600;">Unit</label>
+                            <select id="dl-unit" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); background:#fff; margin-top:4px;">
+                                <option value="All">All Units</option>
+                                <option value="1">Unit 1</option>
+                                <option value="2">Unit 2</option>
+                                <option value="3">Unit 3</option>
+                                <option value="4">Unit 4</option>
+                                <option value="5">Unit 5</option>
+                                <option value="6">Unit 6</option>
+                                <option value="7">Unit 7</option>
+                                <option value="8">Unit 8</option>
+                                <option value="9">Unit 9</option>
+                            </select>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-success" id="download-excel-btn" style="height: 42px; width: 100%;">📥 Download CSV</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COLOR LEGEND FOR SCORES -->
+                <div style="display: flex; gap: 15px; margin: 15px 0 5px 0; font-size: 0.85rem; align-items: center; flex-wrap: wrap;">
+                    <strong>Color Legend:</strong>
+                    <span style="display: inline-flex; align-items: center; gap: 5px;"><span style="width: 14px; height: 14px; background: #fee2e2; border: 1px solid #f87171; display: inline-block; border-radius: 3px;"></span> Less than 50%</span>
+                    <span style="display: inline-flex; align-items: center; gap: 5px;"><span style="width: 14px; height: 14px; background: #fef3c7; border: 1px solid #fbbf24; display: inline-block; border-radius: 3px;"></span> 50% - 75%</span>
+                    <span style="display: inline-flex; align-items: center; gap: 5px;"><span style="width: 14px; height: 14px; background: #d1fae5; border: 1px solid #34d399; display: inline-block; border-radius: 3px;"></span> Above 75%</span>
+                </div>
+
                 <div class="table-responsive">
                     <table>
                         <thead>
                             <tr>
                                 <th>Username & Module</th>
-                                <th>Score</th>
+                                <th>Score Achieved</th>
                                 <th>Percentage</th>
                                 <th>Date & Time</th>
                             </tr>
@@ -802,7 +940,7 @@
     <!-- Simulation Modal for Congratulations -->
     <div id="simulation-modal" class="simulation-modal">
         <div class="simulation-content">
-            <div id="sim-badge" class="confetti-badge">🎉</div>
+            <div id="sim-badge" class="confetti-badge"></div>
             <h2 id="sim-title">Congratulations!</h2>
             <p id="sim-message">You performed exceptionally well on this quiz trial.</p>
             <button type="button" class="btn btn-success" onclick="closeSimulationModal()">Continue to Review</button>
@@ -849,6 +987,8 @@
             }
         };
 
+        let loggedInStudentGrade = "Grade 9";
+
         const loginView = document.getElementById('login-view');
         const registerView = document.getElementById('register-view');
         const adminLoginView = document.getElementById('admin-login-view');
@@ -872,6 +1012,7 @@
         const backToStudentLink = document.getElementById('back-to-student');
 
         const currentUsernameSpan = document.getElementById('current-username');
+        const studentGradeBadge = document.getElementById('student-grade-badge');
         const logoutBtn = document.getElementById('logout-btn');
         const adminLogoutBtn = document.getElementById('admin-logout-btn');
         const clearDataBtn = document.getElementById('clear-data-btn');
@@ -880,6 +1021,34 @@
         const CONFIG_KEY = 'modulus_quiz_config';
         const PERMISSIONS_KEY = 'grade_subject_unit_permissions';
         let timerInterval = null;
+
+        // Audio celebration chime helper
+        function playCelebrationSound() {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                const ctx = new AudioContext();
+                
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                notes.forEach((freq, index) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.value = freq;
+                    
+                    gain.gain.setValueAtTime(0.15, ctx.currentTime + index * 0.12);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + index * 0.12 + 0.3);
+                    
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    
+                    osc.start(ctx.currentTime + index * 0.12);
+                    osc.stop(ctx.currentTime + index * 0.12 + 0.3);
+                });
+            } catch (e) {
+                console.log("Audio play prevented or not supported", e);
+            }
+        }
 
         toRegisterLink.addEventListener('click', () => { loginError.style.display = 'none'; showView(registerView); });
         toLoginLink.addEventListener('click', () => { registerError.style.display = 'none'; showView(loginView); });
@@ -901,6 +1070,7 @@
             const username = document.getElementById('reg-username').value.trim();
             const email = document.getElementById('reg-email').value.trim();
             const password = document.getElementById('reg-password').value;
+            const grade = document.getElementById('reg-grade').value;
 
             try {
                 const userCredential = await auth.createUserWithEmailAndPassword(email, password);
@@ -909,13 +1079,18 @@
                 await db.collection('users').doc(uid).set({
                     username: username,
                     email: email,
+                    grade: grade,
                     role: 'student',
                     isAllowed: true,
                     createdAt: new Date().toISOString()
                 });
 
                 registerError.style.display = 'none';
+                loggedInStudentGrade = grade;
                 currentUsernameSpan.textContent = username;
+                studentGradeBadge.textContent = grade;
+                document.getElementById('select-grade').value = grade;
+
                 showView(quizView);
                 loadSubjectQuestions();
                 initializeQuizSession();
@@ -945,7 +1120,11 @@
                     }
 
                     loginError.style.display = 'none';
+                    loggedInStudentGrade = userData.grade || "Grade 9";
                     currentUsernameSpan.textContent = userData.username || email;
+                    studentGradeBadge.textContent = loggedInStudentGrade;
+                    document.getElementById('select-grade').value = loggedInStudentGrade;
+
                     showView(quizView);
                     loadSubjectQuestions();
                     initializeQuizSession();
@@ -999,8 +1178,16 @@
             return permissions[key] !== false;
         }
 
+        function getModuleConfig(grade, subject, unit) {
+            const allConfigs = JSON.parse(localStorage.getItem(CONFIG_KEY)) || {};
+            const key = `${grade}_${subject}_${unit}`;
+            return allConfigs[key] || { start: '', end: '', timerEnabled: false, timerMins: 10, maxAttempts: 3 };
+        }
+
         async function loadSubjectQuestions() {
-            const grade = document.getElementById('select-grade').value;
+            const grade = loggedInStudentGrade;
+            document.getElementById('select-grade').value = grade;
+
             const subject = document.getElementById('select-subject').value;
             const unit = document.getElementById('select-unit').value;
             document.getElementById('quiz-main-title').textContent = `${grade} - ${subject} - Unit ${unit}`;
@@ -1025,7 +1212,6 @@
             quizForm.style.display = 'none';
             buttonsContainer.style.display = 'none';
 
-            // Check if uploaded custom HTML questions exist for this module
             try {
                 const snapshot = await db.collection('custom_html_questions')
                     .where('grade', '==', grade)
@@ -1037,20 +1223,17 @@
                     const docData = snapshot.docs[0].data();
                     quizForm.innerHTML = `<div class="html-uploaded-content" style="width:100%;">${docData.htmlContent}</div>`;
                     
-                    // Wire up interactivity and security for uploaded HTML question cards
                     const uploadedCards = quizForm.querySelectorAll('.question-card');
                     uploadedCards.forEach((card, idx) => {
                         const qNum = idx + 1;
                         card.setAttribute('data-question', qNum);
                         
-                        // Fix 1: Ensure explanations are strictly hidden until submission (robust selector)
                         const explanation = card.querySelector('.explanation, .answer-box');
                         if (explanation) {
                             explanation.classList.remove('visible');
                             explanation.style.display = 'none';
                         }
 
-                        // Fix 2: Auto-detect data-answer if missing from card attribute
                         if (!card.getAttribute('data-answer') && explanation) {
                             const match = explanation.textContent.match(/Correct\s*Answer[:\s]*([A-D])/i);
                             if (match) {
@@ -1128,7 +1311,7 @@
         }
 
         document.getElementById('load-subject-btn').addEventListener('click', () => {
-            const grade = document.getElementById('select-grade').value;
+            const grade = loggedInStudentGrade;
             const subject = document.getElementById('select-subject').value;
             const unit = document.getElementById('select-unit').value;
             resetQuizForm();
@@ -1139,10 +1322,10 @@
 
         document.getElementById('start-quiz-btn').addEventListener('click', async () => {
             const currentUser = auth.currentUser ? (currentUsernameSpan.textContent || auth.currentUser.email) : 'Anonymous';
-            const grade = document.getElementById('select-grade').value;
+            const grade = loggedInStudentGrade;
             const subject = document.getElementById('select-subject').value;
             const unit = document.getElementById('select-unit').value;
-            const config = JSON.parse(localStorage.getItem(CONFIG_KEY)) || { maxAttempts: 3 };
+            const config = getModuleConfig(grade, subject, unit);
 
             try {
                 const snapshot = await db.collection('results')
@@ -1195,7 +1378,7 @@
                 const explanation = card.querySelector('.explanation, .answer-box');
                 
                 if (explanation) {
-                    explanation.style.display = 'block'; // Reveal on submit explicitly
+                    explanation.style.display = 'block';
                     explanation.classList.add('visible');
                 }
 
@@ -1216,14 +1399,18 @@
             const percentage = Math.round((score / totalQuestions) * 100);
             const scoreDisplay = document.getElementById('score-display');
             scoreDisplay.style.display = 'block';
-            scoreDisplay.innerHTML = `🎉 Quiz Completed! You scored ${score} out of ${totalQuestions} (${percentage}%)`;
+            
+            scoreDisplay.innerHTML = `🎉 Quiz Completed!<br>Score: <strong>${score} out of ${totalQuestions}</strong> (${percentage}%)`;
             scoreDisplay.scrollIntoView({ behavior: 'smooth' });
 
             document.getElementById('submit-btn').style.display = 'none';
+            
+            // Trigger sound and live interactive sparklers/clapping hands (no vertical movement)
+            playCelebrationSound();
             triggerCongratulationsSimulation(percentage);
 
             const currentUser = auth.currentUser ? (currentUsernameSpan.textContent || auth.currentUser.email) : 'Anonymous';
-            const grade = document.getElementById('select-grade').value;
+            const grade = loggedInStudentGrade;
             const subject = document.getElementById('select-subject').value;
             const unit = document.getElementById('select-unit').value;
             
@@ -1233,7 +1420,7 @@
                     grade: grade,
                     subject: subject,
                     unit: unit,
-                    score: `${score}/${totalQuestions}`,
+                    score: `${score} out of ${totalQuestions}`,
                     percentage: percentage,
                     date: new Date().toLocaleString()
                 });
@@ -1248,20 +1435,19 @@
             const message = document.getElementById('sim-message');
             const badge = document.getElementById('sim-badge');
 
+            // Using live interactive classes without vertical translation/bouncing
+            badge.innerHTML = `<span class="sparkle-live">✨</span> <span class="clap-live">👏</span> <span class="sparkle-live">🎇</span>`;
+
             if (percentage === 100) {
-                badge.textContent = "🏆";
-                title.textContent = "Outstanding! 100% Perfect!";
-                message.textContent = "Flawless performance! You mastered every concept in this quiz trial effortlessly.";
+                title.textContent = "Outstanding! 100% Full Score!";
+                message.textContent = "Sparklers and applause! Flawless performance, you completely mastered every concept in this quiz trial.";
             } else if (percentage >= 80) {
-                badge.textContent = "🌟";
                 title.textContent = "Very Good!";
                 message.textContent = `Great job! You scored ${percentage}%. You have a strong grasp of the study materials.`;
             } else if (percentage >= 60) {
-                badge.textContent = "👍";
                 title.textContent = "Good Effort!";
                 message.textContent = `You scored ${percentage}%. Keep reviewing the explanations below to improve even further!`;
             } else {
-                badge.textContent = "💡";
                 title.textContent = "Trial Completed";
                 message.textContent = `You scored ${percentage}%. Review the highlighted correct answers and explanations below to strengthen your understanding.`;
             }
@@ -1286,7 +1472,7 @@
                 options.forEach(option => option.classList.remove('selected', 'correct', 'incorrect'));
                 if (explanation) {
                     explanation.classList.remove('visible');
-                    explanation.style.display = 'none'; // Re-hide explanation on reset
+                    explanation.style.display = 'none';
                 }
             });
 
@@ -1302,10 +1488,10 @@
 
         document.getElementById('reset-btn').addEventListener('click', async () => {
             const currentUser = auth.currentUser ? (currentUsernameSpan.textContent || auth.currentUser.email) : 'Anonymous';
-            const grade = document.getElementById('select-grade').value;
+            const grade = loggedInStudentGrade;
             const subject = document.getElementById('select-subject').value;
             const unit = document.getElementById('select-unit').value;
-            const config = JSON.parse(localStorage.getItem(CONFIG_KEY)) || { maxAttempts: 3 };
+            const config = getModuleConfig(grade, subject, unit);
 
             try {
                 const snapshot = await db.collection('results')
@@ -1358,13 +1544,13 @@
         }
 
         async function initializeQuizSession() {
-            const grade = document.getElementById('select-grade').value;
+            const grade = loggedInStudentGrade;
             const subject = document.getElementById('select-subject').value;
             const unit = document.getElementById('select-unit').value;
             if (!isModuleAllowed(grade, subject, unit)) return;
 
             resetQuizForm();
-            const config = JSON.parse(localStorage.getItem(CONFIG_KEY)) || { start: '', end: '', timerEnabled: false, timerMins: 10, maxAttempts: 3 };
+            const config = getModuleConfig(grade, subject, unit);
             const accessErrorElem = document.getElementById('quiz-access-error');
             const startContainer = document.getElementById('start-quiz-container');
             const quizFormElem = document.getElementById('quiz-form');
@@ -1420,7 +1606,10 @@
         }
 
         function startCountdownTimer() {
-            const config = JSON.parse(localStorage.getItem(CONFIG_KEY)) || { timerEnabled: false, timerMins: 10 };
+            const grade = loggedInStudentGrade;
+            const subject = document.getElementById('select-subject').value;
+            const unit = document.getElementById('select-unit').value;
+            const config = getModuleConfig(grade, subject, unit);
             const timerBox = document.getElementById('timer-box');
 
             if (config.timerEnabled && config.timerMins > 0) {
@@ -1446,17 +1635,41 @@
             }
         }
 
+        function loadAdminConfigValues() {
+            const grade = document.getElementById('config-grade').value;
+            const subject = document.getElementById('config-subject').value;
+            const unit = document.getElementById('config-unit').value;
+            const config = getModuleConfig(grade, subject, unit);
+
+            document.getElementById('config-start').value = config.start || '';
+            document.getElementById('config-end').value = config.end || '';
+            document.getElementById('config-timer-toggle').checked = !!config.timerEnabled;
+            document.getElementById('config-timer-mins').value = config.timerMins || 10;
+            document.getElementById('config-max-attempts').value = config.maxAttempts || 3;
+        }
+
+        document.getElementById('config-grade').addEventListener('change', loadAdminConfigValues);
+        document.getElementById('config-subject').addEventListener('change', loadAdminConfigValues);
+        document.getElementById('config-unit').addEventListener('change', loadAdminConfigValues);
+
         configForm.addEventListener('submit', (e) => {
             e.preventDefault();
+            const grade = document.getElementById('config-grade').value;
+            const subject = document.getElementById('config-subject').value;
+            const unit = document.getElementById('config-unit').value;
+
             const start = document.getElementById('config-start').value;
             const end = document.getElementById('config-end').value;
             const timerEnabled = document.getElementById('config-timer-toggle').checked;
             const timerMins = parseInt(document.getElementById('config-timer-mins').value) || 10;
             const maxAttempts = parseInt(document.getElementById('config-max-attempts').value) || 3;
 
-            const config = { start, end, timerEnabled, timerMins, maxAttempts };
-            localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
-            alert("Quiz configuration & attempt limits saved successfully!");
+            const allConfigs = JSON.parse(localStorage.getItem(CONFIG_KEY)) || {};
+            const key = `${grade}_${subject}_${unit}`;
+            allConfigs[key] = { start, end, timerEnabled, timerMins, maxAttempts };
+            
+            localStorage.setItem(CONFIG_KEY, JSON.stringify(allConfigs));
+            alert(`Timer and configuration saved successfully for ${grade} - ${subject} Unit ${unit}!`);
         });
 
         htmlQuestionUploadForm.addEventListener('submit', async (e) => {
@@ -1654,13 +1867,7 @@
         };
 
         async function loadAdminDashboard() {
-            const config = JSON.parse(localStorage.getItem(CONFIG_KEY)) || { start: '', end: '', timerEnabled: false, timerMins: 10, maxAttempts: 3 };
-            document.getElementById('config-start').value = config.start || '';
-            document.getElementById('config-end').value = config.end || '';
-            document.getElementById('config-timer-toggle').checked = config.timerEnabled;
-            document.getElementById('config-timer-mins').value = config.timerMins;
-            document.getElementById('config-max-attempts').value = config.maxAttempts || 3;
-
+            loadAdminConfigValues();
             updateLockStatusDisplay();
             loadAdminMaterialsList();
             loadAdminHtmlQuestionsList();
@@ -1695,12 +1902,31 @@
                         if (record.percentage > maxScore) maxScore = record.percentage;
                         if (record.percentage >= 60) passCount++;
 
+                        let rowBg = '';
+                        let badgeBg = '';
+                        let badgeColor = '';
+
+                        if (record.percentage < 50) {
+                            rowBg = '#fdf2f2';
+                            badgeBg = '#fee2e2';
+                            badgeColor = '#991b1b';
+                        } else if (record.percentage <= 75) {
+                            rowBg = '#fffbeb';
+                            badgeBg = '#fef3c7';
+                            badgeColor = '#92400e';
+                        } else {
+                            rowBg = '#f0fdf4';
+                            badgeBg = '#d1fae5';
+                            badgeColor = '#065f46';
+                        }
+
                         const tr = document.createElement('tr');
+                        tr.style.backgroundColor = rowBg;
                         tr.innerHTML = `
                             <td><strong>${escapeHtml(record.username)}</strong><br><small style="color:#64748b;">📖 ${escapeHtml(record.grade || 'Grade 9')} - ${escapeHtml(record.subject)} - Unit ${escapeHtml(record.unit)}</small></td>
-                            <td>${record.score}</td>
-                            <td><span style="font-weight:700; color: ${record.percentage >= 60 ? 'var(--success-color)' : 'var(--error-color)'}">${record.percentage}%</span></td>
-                            <td>${record.date}</td>
+                            <td>${escapeHtml(record.score)}</td>
+                            <td><span class="score-pill" style="background: ${badgeBg}; color: ${badgeColor};">${record.percentage}%</span></td>
+                            <td>${escapeHtml(record.date)}</td>
                         `;
                         tbody.appendChild(tr);
                     });
@@ -1724,7 +1950,7 @@
                 const usersSnapshot = await db.collection('users').where('role', '==', 'student').get();
                 
                 if (usersSnapshot.empty) {
-                    studentsTbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #718096;">No registered students found.</td></tr>`;
+                    studentsTbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #718096;">No registered students found.</td></tr>`;
                     return;
                 }
 
@@ -1737,6 +1963,7 @@
                     tr.innerHTML = `
                         <td>${escapeHtml(student.username || 'N/A')}</td>
                         <td>${escapeHtml(student.email || 'N/A')}</td>
+                        <td><strong>${escapeHtml(student.grade || 'Grade 9')}</strong></td>
                         <td><span style="color: ${isAllowed ? 'var(--success-color)' : 'var(--error-color)'}; font-weight:600;">${isAllowed ? '✅ Allowed' : '🔒 Revoked'}</span></td>
                         <td>
                             <button type="button" class="btn btn-small ${isAllowed ? 'btn-danger' : 'btn-success'}" onclick="toggleUserAccess('${userId}', ${isAllowed})">
@@ -1761,6 +1988,57 @@
                 alert("Error updating user status: " + err.message);
             }
         };
+
+        document.getElementById('download-excel-btn').addEventListener('click', async () => {
+            const dlGrade = document.getElementById('dl-grade').value;
+            const dlSubject = document.getElementById('dl-subject').value;
+            const dlUnit = document.getElementById('dl-unit').value;
+
+            try {
+                let query = db.collection('results');
+                if (dlGrade !== 'All') {
+                    query = query.where('grade', '==', dlGrade);
+                }
+                if (dlSubject !== 'All') {
+                    query = query.where('subject', '==', dlSubject);
+                }
+                if (dlUnit !== 'All') {
+                    query = query.where('unit', '==', dlUnit);
+                }
+
+                const resultsSnapshot = await query.get();
+                if (resultsSnapshot.empty) {
+                    alert(`No student attempt records found matching Grade: ${dlGrade}, Subject: ${dlSubject}, Unit: ${dlUnit}.`);
+                    return;
+                }
+
+                let csvContent = "Student Name,Grade Level,Subject,Unit,Score Achieved,Percentage,Submission Date\n";
+                resultsSnapshot.forEach(docSnap => {
+                    const r = docSnap.data();
+                    const name = `"${(r.username || '').replace(/"/g, '""')}"`;
+                    const grade = `"${(r.grade || 'Grade 9').replace(/"/g, '""')}"`;
+                    const subject = `"${(r.subject || '').replace(/"/g, '""')}"`;
+                    const unit = `"${(r.unit || '').replace(/"/g, '""')}"`;
+                    const rawScore = r.score || '';
+                    const score = `\"=\x22${rawScore.replace(/"/g, '""')}\x22\"`;
+                    const percentage = `${r.percentage || 0}%`;
+                    const date = `"${(r.date || '').replace(/"/g, '""')}"`;
+                    csvContent += `${name},${grade},${subject},${unit},${score},${percentage},${date}\n`;
+                });
+
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `quiz_scores_${dlGrade}_${dlSubject}_Unit${dlUnit}_${new Date().toISOString().slice(0, 10)}.csv`.replace(/\s+/g, '_');
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (err) {
+                alert("Error downloading filtered excel data: " + err.message);
+            }
+        });
 
         clearDataBtn.addEventListener('click', async () => {
             if (confirm("Are you sure you want to clear all student attempt records?")) {
