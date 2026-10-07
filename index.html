@@ -35,7 +35,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Live interactive sparkler and clapping effect (no vertical bouncing) */
         @keyframes liveJitter {
             0% { transform: scale(1) rotate(0deg); filter: brightness(1); }
             25% { transform: scale(1.08) rotate(-3deg); filter: brightness(1.2); }
@@ -50,6 +49,14 @@
             100% { transform: scale(1); opacity: 0.9; }
         }
 
+        @keyframes firearmShoot {
+            0% { transform: translateX(0) scale(1) rotate(0deg); filter: brightness(1); }
+            25% { transform: translateX(-10px) scale(1.15) rotate(-10deg); filter: brightness(1.4); }
+            50% { transform: translateX(15px) scale(1.25) rotate(10deg); filter: brightness(1.6); }
+            75% { transform: translateX(-5px) scale(1.05) rotate(-5deg); filter: brightness(1.2); }
+            100% { transform: translateX(0) scale(1) rotate(0deg); filter: brightness(1); }
+        }
+
         .sparkle-live {
             display: inline-block;
             animation: liveJitter 0.4s infinite ease-in-out;
@@ -58,6 +65,11 @@
         .clap-live {
             display: inline-block;
             animation: pulseHand 0.5s infinite ease-in-out;
+        }
+
+        .firearm-live {
+            display: inline-block;
+            animation: firearmShoot 0.25s infinite ease-in-out;
         }
 
         * { box-sizing: border-box; }
@@ -439,13 +451,13 @@
                     <label for="reg-password">Choose Password</label>
                     <input type="password" id="reg-password" required placeholder="••••••••">
 
-                    <label for="reg-grade">Select Your Grade Level</label>
-                    <select id="reg-grade" required>
-                        <option value="Grade 9">Grade 9</option>
-                        <option value="Grade 10">Grade 10</option>
-                        <option value="Grade 11">Grade 11</option>
-                        <option value="Grade 12">Grade 12</option>
-                    </select>
+                    <label>Select Grade Level(s) (You can select multiple)</label>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 8px 0 20px 0;">
+                        <label style="font-weight:normal; display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="reg-grades" value="Grade 9" checked style="width:18px;height:18px;"> Grade 9</label>
+                        <label style="font-weight:normal; display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="reg-grades" value="Grade 10" style="width:18px;height:18px;"> Grade 10</label>
+                        <label style="font-weight:normal; display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="reg-grades" value="Grade 11" style="width:18px;height:18px;"> Grade 11</label>
+                        <label style="font-weight:normal; display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="reg-grades" value="Grade 12" style="width:18px;height:18px;"> Grade 12</label>
+                    </div>
                     
                     <button type="submit" class="btn btn-success" style="width:100%; margin-top: 10px;">Create Account & Log In</button>
                 </form>
@@ -485,7 +497,7 @@
             <div class="user-header">
                 <div>
                     <span>Logged in as: <strong id="current-username"></strong></span><br>
-                    <span style="font-size: 0.85rem; color: #475569;">Assigned Grade Level: <strong id="student-grade-badge" style="color: var(--accent-color);">--</strong></span>
+                    <span style="font-size: 0.85rem; color: #475569;">Enrolled & Allowed Grade Levels: <strong id="student-grade-badge" style="color: var(--accent-color);">--</strong></span>
                 </div>
                 <button type="button" class="btn btn-reset btn-small" id="logout-btn">Log Out</button>
             </div>
@@ -495,12 +507,9 @@
                 <h3>📚 Select Grade Level, Subject and Unit</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 15px; align-items: end; margin-top: 15px;">
                     <div>
-                        <label for="select-grade">Grade Level (Locked to your Grade)</label>
-                        <select id="select-grade" disabled style="background:#e2e8f0; cursor:not-allowed;">
+                        <label for="select-grade">Grade Level</label>
+                        <select id="select-grade">
                             <option value="Grade 9">Grade 9</option>
-                            <option value="Grade 10">Grade 10</option>
-                            <option value="Grade 11">Grade 11</option>
-                            <option value="Grade 12">Grade 12</option>
                         </select>
                     </div>
                     <div>
@@ -569,7 +578,7 @@
         <!-- VIEW 5: ADMIN / INSTRUCTOR DASHBOARD -->
         <div id="admin-view" class="view">
             <header>
-                <h1>🛡️️ Instructor Dashboard</h1>
+                <h1>🛡 Instructor Dashboard</h1>
                 <p>Student Submissions, Grade/Subject Access, HTML Question File Management & Settings</p>
             </header>
 
@@ -844,7 +853,8 @@
                             <tr>
                                 <th>Username</th>
                                 <th>Email</th>
-                                <th>Grade Level</th>
+                                <th>Registered Grades</th>
+                                <th>Allowed Grades Access</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -937,7 +947,7 @@
         </footer>
     </div>
 
-    <!-- Simulation Modal for Congratulations -->
+    <!-- Simulation Modal for Congratulations / Poor Performance -->
     <div id="simulation-modal" class="simulation-modal">
         <div class="simulation-content">
             <div id="sim-badge" class="confetti-badge"></div>
@@ -987,6 +997,8 @@
             }
         };
 
+        let loggedInStudentGrades = ["Grade 9"];
+        let adminAllowedGrades = "All";
         let loggedInStudentGrade = "Grade 9";
 
         const loginView = document.getElementById('login-view');
@@ -1022,14 +1034,13 @@
         const PERMISSIONS_KEY = 'grade_subject_unit_permissions';
         let timerInterval = null;
 
-        // Audio celebration chime helper
         function playCelebrationSound() {
             try {
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
                 if (!AudioContext) return;
                 const ctx = new AudioContext();
                 
-                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                const notes = [523.25, 659.25, 783.99, 1046.50];
                 notes.forEach((freq, index) => {
                     const osc = ctx.createOscillator();
                     const gain = ctx.createGain();
@@ -1070,7 +1081,15 @@
             const username = document.getElementById('reg-username').value.trim();
             const email = document.getElementById('reg-email').value.trim();
             const password = document.getElementById('reg-password').value;
-            const grade = document.getElementById('reg-grade').value;
+            
+            const gradeCheckboxes = document.querySelectorAll('input[name="reg-grades"]:checked');
+            const grades = Array.from(gradeCheckboxes).map(cb => cb.value);
+
+            if (grades.length === 0) {
+                registerError.textContent = 'Please select at least one grade level.';
+                registerError.style.display = 'block';
+                return;
+            }
 
             try {
                 const userCredential = await auth.createUserWithEmailAndPassword(email, password);
@@ -1079,18 +1098,19 @@
                 await db.collection('users').doc(uid).set({
                     username: username,
                     email: email,
-                    grade: grade,
+                    grades: grades,
+                    allowedGrades: 'All',
                     role: 'student',
                     isAllowed: true,
                     createdAt: new Date().toISOString()
                 });
 
                 registerError.style.display = 'none';
-                loggedInStudentGrade = grade;
+                loggedInStudentGrades = grades;
+                adminAllowedGrades = 'All';
                 currentUsernameSpan.textContent = username;
-                studentGradeBadge.textContent = grade;
-                document.getElementById('select-grade').value = grade;
-
+                
+                populateStudentGradeDropdown();
                 showView(quizView);
                 loadSubjectQuestions();
                 initializeQuizSession();
@@ -1120,11 +1140,11 @@
                     }
 
                     loginError.style.display = 'none';
-                    loggedInStudentGrade = userData.grade || "Grade 9";
+                    loggedInStudentGrades = userData.grades || (userData.grade ? [userData.grade] : ["Grade 9"]);
+                    adminAllowedGrades = userData.allowedGrades || "All";
                     currentUsernameSpan.textContent = userData.username || email;
-                    studentGradeBadge.textContent = loggedInStudentGrade;
-                    document.getElementById('select-grade').value = loggedInStudentGrade;
 
+                    populateStudentGradeDropdown();
                     showView(quizView);
                     loadSubjectQuestions();
                     initializeQuizSession();
@@ -1163,6 +1183,45 @@
             }
         });
 
+        function populateStudentGradeDropdown() {
+            const selectGrade = document.getElementById('select-grade');
+            selectGrade.innerHTML = '';
+
+            let availableGrades = loggedInStudentGrades.filter(g => {
+                if (adminAllowedGrades === "All" || !adminAllowedGrades) return true;
+                if (Array.isArray(adminAllowedGrades)) return adminAllowedGrades.includes(g);
+                return adminAllowedGrades === g;
+            });
+
+            if (availableGrades.length === 0) {
+                availableGrades = loggedInStudentGrades;
+            }
+
+            availableGrades.forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g;
+                opt.textContent = g;
+                selectGrade.appendChild(opt);
+            });
+
+            selectGrade.disabled = availableGrades.length <= 1;
+            selectGrade.style.background = availableGrades.length <= 1 ? '#e2e8f0' : '#fff';
+            selectGrade.style.cursor = availableGrades.length <= 1 ? 'not-allowed' : 'pointer';
+
+            loggedInStudentGrade = selectGrade.value || loggedInStudentGrades[0];
+            studentGradeBadge.textContent = availableGrades.join(', ');
+        }
+
+        document.getElementById('select-grade').addEventListener('change', (e) => {
+            loggedInStudentGrade = e.target.value;
+            const subject = document.getElementById('select-subject').value;
+            const unit = document.getElementById('select-unit').value;
+            resetQuizForm();
+            loadSubjectQuestions();
+            initializeQuizSession();
+            loadStudentMaterials(loggedInStudentGrade, subject, unit);
+        });
+
         async function handleLogout() {
             if (timerInterval) clearInterval(timerInterval);
             await auth.signOut();
@@ -1186,8 +1245,6 @@
 
         async function loadSubjectQuestions() {
             const grade = loggedInStudentGrade;
-            document.getElementById('select-grade').value = grade;
-
             const subject = document.getElementById('select-subject').value;
             const unit = document.getElementById('select-unit').value;
             document.getElementById('quiz-main-title').textContent = `${grade} - ${subject} - Unit ${unit}`;
@@ -1400,13 +1457,15 @@
             const scoreDisplay = document.getElementById('score-display');
             scoreDisplay.style.display = 'block';
             
-            scoreDisplay.innerHTML = `🎉 Quiz Completed!<br>Score: <strong>${score} out of ${totalQuestions}</strong> (${percentage}%)`;
+            scoreDisplay.innerHTML = `Quiz Completed!<br>Score: <strong>${score} out of ${totalQuestions}</strong> (${percentage}%)`;
             scoreDisplay.scrollIntoView({ behavior: 'smooth' });
 
             document.getElementById('submit-btn').style.display = 'none';
             
-            // Trigger sound and live interactive sparklers/clapping hands (no vertical movement)
-            playCelebrationSound();
+            // Only play celebration sound and show congratulations if score is >= 50%
+            if (percentage >= 50) {
+                playCelebrationSound();
+            }
             triggerCongratulationsSimulation(percentage);
 
             const currentUser = auth.currentUser ? (currentUsernameSpan.textContent || auth.currentUser.email) : 'Anonymous';
@@ -1435,21 +1494,24 @@
             const message = document.getElementById('sim-message');
             const badge = document.getElementById('sim-badge');
 
-            // Using live interactive classes without vertical translation/bouncing
-            badge.innerHTML = `<span class="sparkle-live">✨</span> <span class="clap-live">👏</span> <span class="sparkle-live">🎇</span>`;
-
-            if (percentage === 100) {
+            // Strictly display Poor Performance for scores less than 50% without any congratulations/appreciation
+            if (percentage < 50) {
+                badge.innerHTML = `<span style="font-size: 3rem;">⚠️</span>`;
+                title.textContent = "Poor Performance!";
+                message.textContent = `You scored ${percentage}%. This indicates poor performance. Please thoroughly review the study materials and explanations below before trying again.`;
+            } else if (percentage === 100) {
+                badge.innerHTML = `<span class="firearm-live">🔫</span> <span class="sparkle-live">💥</span> <span class="firearm-live">🔥</span>`;
                 title.textContent = "Outstanding! 100% Full Score!";
-                message.textContent = "Sparklers and applause! Flawless performance, you completely mastered every concept in this quiz trial.";
-            } else if (percentage >= 80) {
-                title.textContent = "Very Good!";
-                message.textContent = `Great job! You scored ${percentage}%. You have a strong grasp of the study materials.`;
-            } else if (percentage >= 60) {
-                title.textContent = "Good Effort!";
-                message.textContent = `You scored ${percentage}%. Keep reviewing the explanations below to improve even further!`;
+                message.textContent = "Precision execution! Firearms shooting simulation active—flawless 100% mastery achieved on this trial!";
             } else {
-                title.textContent = "Trial Completed";
-                message.textContent = `You scored ${percentage}%. Review the highlighted correct answers and explanations below to strengthen your understanding.`;
+                badge.innerHTML = `<span class="sparkle-live">✨</span> <span class="clap-live">👏</span> <span class="sparkle-live">🎇</span>`;
+                if (percentage >= 80) {
+                    title.textContent = "Very Good!";
+                    message.textContent = `Great job! You scored ${percentage}%. You have a strong grasp of the study materials.`;
+                } else {
+                    title.textContent = "Good Effort!";
+                    message.textContent = `You scored ${percentage}%. Keep reviewing the explanations below to improve even further!`;
+                }
             }
 
             modal.style.display = 'flex';
@@ -1950,7 +2012,7 @@
                 const usersSnapshot = await db.collection('users').where('role', '==', 'student').get();
                 
                 if (usersSnapshot.empty) {
-                    studentsTbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #718096;">No registered students found.</td></tr>`;
+                    studentsTbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #718096;">No registered students found.</td></tr>`;
                     return;
                 }
 
@@ -1958,12 +2020,23 @@
                     const student = docSnap.data();
                     const userId = docSnap.id;
                     const isAllowed = student.isAllowed !== false;
+                    const studentGradesList = student.grades ? student.grades.join(', ') : (student.grade || 'Grade 9');
+                    const currentAllowed = student.allowedGrades || 'All';
 
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>${escapeHtml(student.username || 'N/A')}</td>
                         <td>${escapeHtml(student.email || 'N/A')}</td>
-                        <td><strong>${escapeHtml(student.grade || 'Grade 9')}</strong></td>
+                        <td><strong>${escapeHtml(studentGradesList)}</strong></td>
+                        <td>
+                            <select id="allowed-grades-${userId}" style="padding:6px; border-radius:6px; border:1px solid var(--border-color); font-size:0.85rem;" onchange="updateStudentAllowedGrades('${userId}')">
+                                <option value="All" ${currentAllowed === 'All' ? 'selected' : ''}>All Registered Grades</option>
+                                <option value="Grade 9" ${currentAllowed === 'Grade 9' ? 'selected' : ''}>Grade 9 Only</option>
+                                <option value="Grade 10" ${currentAllowed === 'Grade 10' ? 'selected' : ''}>Grade 10 Only</option>
+                                <option value="Grade 11" ${currentAllowed === 'Grade 11' ? 'selected' : ''}>Grade 11 Only</option>
+                                <option value="Grade 12" ${currentAllowed === 'Grade 12' ? 'selected' : ''}>Grade 12 Only</option>
+                            </select>
+                        </td>
                         <td><span style="color: ${isAllowed ? 'var(--success-color)' : 'var(--error-color)'}; font-weight:600;">${isAllowed ? '✅ Allowed' : '🔒 Revoked'}</span></td>
                         <td>
                             <button type="button" class="btn btn-small ${isAllowed ? 'btn-danger' : 'btn-success'}" onclick="toggleUserAccess('${userId}', ${isAllowed})">
@@ -1977,6 +2050,16 @@
                 console.error("Error loading students list: ", err);
             }
         }
+
+        window.updateStudentAllowedGrades = async function(userId) {
+            const val = document.getElementById(`allowed-grades-${userId}`).value;
+            try {
+                await db.collection('users').doc(userId).update({ allowedGrades: val });
+                alert("Student grade access updated successfully.");
+            } catch (err) {
+                alert("Error updating student grade access: " + err.message);
+            }
+        };
 
         window.toggleUserAccess = async function(userId, currentStatus) {
             const newStatus = !currentStatus;
