@@ -521,6 +521,8 @@
                             <option value="Biology">Biology</option>
                             <option value="Chemistry">Chemistry</option>
                             <option value="History">History</option>
+                            <option value="ICT">ICT</option>
+                            <option value="Web Design and Dev't">Web Design and Dev't</option>
                         </select>
                     </div>
                     <div>
@@ -608,6 +610,8 @@
                             <option value="Biology">Biology</option>
                             <option value="Chemistry">Chemistry</option>
                             <option value="History">History</option>
+                            <option value="ICT">ICT</option>
+                            <option value="Web Design and Dev't">Web Design and Dev't</option>
                         </select>
                     </div>
                     <div>
@@ -652,6 +656,8 @@
                             <option value="Biology">Biology</option>
                             <option value="Chemistry">Chemistry</option>
                             <option value="History">History</option>
+                            <option value="ICT">ICT</option>
+                            <option value="Web Design and Dev't">Web Design and Dev't</option>
                         </select>
                     </div>
                     <div>
@@ -721,6 +727,8 @@
                                 <option value="Biology">Biology</option>
                                 <option value="Chemistry">Chemistry</option>
                                 <option value="History">History</option>
+                                <option value="ICT">ICT</option>
+                                <option value="Web Design and Dev't">Web Design and Dev't</option>
                             </select>
                         </div>
                         <div>
@@ -785,6 +793,8 @@
                                 <option value="Biology">Biology</option>
                                 <option value="Chemistry">Chemistry</option>
                                 <option value="History">History</option>
+                                <option value="ICT">ICT</option>
+                                <option value="Web Design and Dev't">Web Design and Dev't</option>
                             </select>
                         </div>
                         <div>
@@ -895,6 +905,8 @@
                                 <option value="Biology">Biology</option>
                                 <option value="Chemistry">Chemistry</option>
                                 <option value="History">History</option>
+                                <option value="ICT">ICT</option>
+                                <option value="Web Design and Dev't">Web Design and Dev't</option>
                             </select>
                         </div>
                         <div>
@@ -1462,7 +1474,6 @@
 
             document.getElementById('submit-btn').style.display = 'none';
             
-            // Only play celebration sound and show congratulations if score is >= 50%
             if (percentage >= 50) {
                 playCelebrationSound();
             }
@@ -1494,7 +1505,6 @@
             const message = document.getElementById('sim-message');
             const badge = document.getElementById('sim-badge');
 
-            // Strictly display Poor Performance for scores less than 50% without any congratulations/appreciation
             if (percentage < 50) {
                 badge.innerHTML = `<span style="font-size: 3rem;">⚠️</span>`;
                 title.textContent = "Poor Performance!";
